@@ -52,4 +52,7 @@ Full setup details and database schema are available in the [README.md](file:///
 **1. Frontend Build Optimization ([client/Dockerfile](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/Dockerfile))**
 - **Node Version**: Upgraded to `node:20-alpine` to support Vite's latest requirements.
 - **Network Stability**: Added `npm config` settings for `registry`, `fetch-retries` (5), `mintimeout` (20s), `maxtimeout` (120s), and a global `timeout` (600s) to fix `ECONNRESET` issues on slow networks.
-- **Safer Installation**: Used `--legacy-peer-deps`, `--no-audit`, and `--prefer-offline` for a more stable dependency installation.
+- Safer Installation: Used `--legacy-peer-deps`, `--no-audit`, and `--prefer-offline` for a more stable dependency installation.
+
+**2. Build Context Optimization ([client/.dockerignore](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/.dockerignore))**
+- Added `.dockerignore` to exclude `node_modules`, `dist`, and version control files, reducing image build time and context size.
