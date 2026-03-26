@@ -60,7 +60,11 @@ Full setup details and database schema are available in the [README.md](file:///
 **3. Frontend Missing Entry Fix**
 - Recreated missing `index.html` in `client/` root to allow Vite build to succeed.
 
-**4. Backend Compilation Fix**
+**4. Port Conflict Resolution**
+- Changed backend host port from `8080` to `8081` in `docker-compose.yml` to avoid conflicts with existing system processes.
+- Updated `client/.env` to point `VITE_API_URL` to `http://localhost:8081/api`.
+
+**5. Backend Compilation Fix**
 - Added missing `java.util.List` import in `RegisterRequest.java`.
 
 
