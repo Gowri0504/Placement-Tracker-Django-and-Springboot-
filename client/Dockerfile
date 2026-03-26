@@ -2,14 +2,16 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
-# Improve npm install reliability and fix network issues (ECONNRESET)
-RUN npm config set fetch-retries 5 \
+# Set npm configs to handle unstable networks and fix ECONNRESET
+RUN npm config set registry https://registry.npmjs.org/ \
+    && npm config set fetch-retries 5 \
     && npm config set fetch-retry-mintimeout 20000 \
-    && npm config set fetch-retry-maxtimeout 120000
+    && npm config set fetch-retry-maxtimeout 120000 \
+    && npm config set timeout 600000
 
 COPY package*.json ./
 
-# Install dependencies with flags for better compatibility and reliability
+# Install dependencies with safer flags for better compatibility and reliability
 RUN npm install --legacy-peer-deps --no-audit --prefer-offline
 
 COPY . .
