@@ -1,0 +1,211 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply antialiased;
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white/70 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.04)];
+  }
+  
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/60 shadow-sm hover:shadow-lg transition-all duration-300;
+  }
+
+  .btn-primary {
+    @apply bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-slate-900/20 hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 active:scale-95;
+  }
+
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-700;
+  }
+
+  .text-gradient-elite {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-slate-800 via-indigo-900 to-slate-900;
+  }
+}
+
+/* Light Theme Overrides */
+[data-theme="light"] {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+[data-theme="light"] body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+[data-theme="light"] .bg-slate-950 {
+  background-color: #f8fafc !important;
+}
+
+[data-theme="light"] .bg-slate-900 {
+  background-color: #ffffff !important;
+}
+
+[data-theme="light"] .bg-slate-900\/60 {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-theme="light"] .bg-slate-900\/80 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="light"] .border-slate-800,
+[data-theme="light"] .border-slate-700,
+[data-theme="light"] .border-slate-700\/50,
+[data-theme="light"] .border-slate-800\/50 {
+  border-color: #e2e8f0 !important;
+}
+
+[data-theme="light"] .hover\:bg-slate-800\/50:hover {
+  background-color: #eaf0f6 !important;
+}
+
+[data-theme="light"] .text-slate-300 {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .text-slate-500 {
+  color: #64748b !important;
+}
+
+[data-theme="light"] .bg-slate-800 {
+  background-color: #f1f5f9 !important;
+}
+
+[data-theme="light"] .bg-slate-900\/40 {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+[data-theme="light"] .text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-slate-200 {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .text-slate-400 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] [class*="bg-slate-800/50"] {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme="light"] .bg-slate-900\/50 {
+  background-color: rgba(255, 255, 255, 0.6) !important;
+}
+
+@layer utilities {
+  .animate-fade-in-up {
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  
+  .animate-pop {
+    animation: pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .animate-float-delayed {
+    animation: float 6s ease-in-out 3s infinite;
+  }
+
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Heatmap Styles */
+.react-calendar-heatmap text {
+  font-size: 10px;
+  fill: #94a3b8;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.react-calendar-heatmap .react-calendar-heatmap-rect {
+  rx: 4px;
+  ry: 4px;
+  transition: all 0.2s ease;
+}
+
+.react-calendar-heatmap .react-calendar-heatmap-rect:hover {
+  stroke: #6366f1;
+  stroke-width: 1px;
+}
+
+.react-calendar-heatmap .color-empty {
+  fill: #f1f5f9;
+}
+
+.react-calendar-heatmap .color-scale-1 {
+  fill: #c7d2fe;
+}
+
+.react-calendar-heatmap .color-scale-2 {
+  fill: #818cf8;
+}
+
+.react-calendar-heatmap .color-scale-3 {
+  fill: #4f46e5;
+}
+
+.react-calendar-heatmap .color-scale-4 {
+  fill: #312e81;
+}
