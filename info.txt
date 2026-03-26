@@ -56,3 +56,7 @@ Full setup details and database schema are available in the [README.md](file:///
 
 **2. Build Context Optimization ([client/.dockerignore](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/.dockerignore))**
 - Added `.dockerignore` to exclude `node_modules`, `dist`, and version control files, reducing image build time and context size.
+
+**3. Frontend Missing Entry Fix**
+- Recreated missing `index.html` in `client/` root to allow Vite build to succeed.
+
