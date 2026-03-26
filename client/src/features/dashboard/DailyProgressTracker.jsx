@@ -9,14 +9,21 @@ const ROUNDS = [
   { id: 'Aptitude', label: 'Aptitude & Verbal' },
   { id: 'DSA', label: 'DSA & Coding' },
   { id: 'Core', label: 'Core Subjects' },
-  { id: 'Projects', label: 'Projects & Dev' }
+  { id: 'Projects', label: 'Projects & Dev' },
+  { id: 'Online Test', label: 'Online Test' },
+  { id: 'Interview', label: 'Interview' }
+];
+
+const TOPIC_OPTIONS = [
+  'Arrays & Strings', 'Linked List', 'Trees & Graphs', 'DP & Greedy', 
+  'OS (Process/Threads)', 'DBMS (SQL/Normalize)', 'Computer Networks', 'OOPs Concepts',
+  'System Design', 'Quantitative Aptitude', 'Logical Reasoning', 'Verbal Ability'
 ];
 
 const DailyProgressTracker = () => {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('last7'); // last7, last30, month
-  const [editingTopics, setEditingTopics] = useState({}); // { date: text }
 
   useEffect(() => {
     fetchLogs();
@@ -24,239 +31,149 @@ const DailyProgressTracker = () => {
 
   const fetchLogs = async () => {
     try {
-      const res = await api.get('/daylogs/all');
-      setLogs(res.data);
+      const res = await api.get('/logs');
+      setLogs(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Failed to fetch logs', err);
+      setLogs([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const getDays = () => {
-    const today = new Date();
-    if (view === 'last7') {
-      return eachDayOfInterval({ start: subDays(today, 6), end: today }).reverse();
-    } else if (view === 'last30') {
-      return eachDayOfInterval({ start: subDays(today, 29), end: today }).reverse();
-    } else {
-      return eachDayOfInterval({ start: startOfMonth(today), end: endOfMonth(today) }).reverse();
-    }
-  };
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
-  const updateDayLog = async (dateStr, data) => {
-    const existingLog = logs.find(l => l.date === dateStr);
+  const [newLog, setNewLog] = useState({
+    roundType: 'DSA',
+    topic: '',
+    timeSpentMinutes: 60,
+    difficulty: 'Medium',
+    notes: ''
+  });
+
+  const addLog = async () => {
+    setSubmitting(true);
+    setError(null);
     try {
-      // Update local state optimistically
-      const updatedLogs = existingLog 
-        ? logs.map(l => l.date === dateStr ? { ...l, ...data } : l)
-        : [...logs, { date: dateStr, ...data }];
-      setLogs(updatedLogs);
-
-      await api.post('/daylog', {
-        date: dateStr,
-        ...data
+      const res = await api.post('/logs', {
+        topic: `${newLog.roundType}: ${newLog.topic}`,
+        timeSpentMinutes: newLog.timeSpentMinutes,
+        difficulty: newLog.difficulty,
+        notes: newLog.notes
       });
+      setLogs(prev => [res.data, ...prev]);
+      setNewLog({ roundType: 'DSA', topic: '', timeSpentMinutes: 60, difficulty: 'Medium', notes: '' });
     } catch (err) {
-      console.error('Failed to update log', err);
-      fetchLogs();
+      console.error('Failed to save log', err);
+      setError('Failed to save your activity. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const toggleRound = async (dateStr, roundId) => {
-    const existingLog = logs.find(l => l.date === dateStr);
-    let completedRounds = existingLog?.metrics?.completedRounds || [];
-    
-    if (completedRounds.includes(roundId)) {
-      completedRounds = completedRounds.filter(r => r !== roundId);
-    } else {
-      completedRounds = [...completedRounds, roundId];
+  const deleteLog = async (id) => {
+    try {
+      await api.delete(`/logs/${id}`);
+      setLogs(prev => prev.filter(l => l.id !== id));
+    } catch (err) {
+      console.error('Failed to delete log', err);
     }
-
-    updateDayLog(dateStr, {
-      metrics: {
-        ...existingLog?.metrics,
-        completedRounds
-      }
-    });
   };
 
-  const saveTopics = async (dateStr) => {
-    const topics = editingTopics[dateStr];
-    await updateDayLog(dateStr, { notes: topics });
-    setEditingTopics(prev => {
-      const next = { ...prev };
-      delete next[dateStr];
-      return next;
-    });
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    addLog();
   };
 
-  const isCompleted = (dateStr, roundId) => {
-    const log = logs.find(l => l.date === dateStr);
-    return log?.metrics?.completedRounds?.includes(roundId);
-  };
-
-  const getNotes = (dateStr) => {
-    const log = logs.find(l => l.date === dateStr);
-    return log?.notes || '';
-  };
-
-  const getCompletionRate = (roundId) => {
-    const days = getDays();
-    const completed = days.filter(d => isCompleted(format(d, 'yyyy-MM-dd'), roundId)).length;
-    return Math.round((completed / days.length) * 100);
-  };
-
-  if (loading) return <div className="text-slate-400 p-8 text-center">Loading progress...</div>;
-
-  const days = getDays();
+  if (loading) return <div className="text-center p-10 text-slate-500">Syncing logs...</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <FiCalendar className="text-primary" />
-            Daily Preparation Rounds
-          </h2>
-          <p className="text-slate-400 text-sm mt-1">Track your consistency across key placement rounds.</p>
-        </div>
-        
-        <div className="flex bg-slate-900/50 p-1 rounded-lg border border-slate-800">
-          {[
-            { id: 'last7', label: '7 Days' },
-            { id: 'last30', label: '30 Days' },
-          ].map(opt => (
-            <button
-              key={opt.id}
-              onClick={() => setView(opt.id)}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                view === opt.id ? 'bg-primary text-white shadow-lg' : 'text-slate-400 hover:text-slate-200'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="space-y-8">
+      <Card className="p-6">
+        <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <FiEdit3 className="text-primary" />
+          Log Daily Activity
+        </h3>
+        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <select 
+            className="bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:border-primary outline-none"
+            value={newLog.roundType}
+            onChange={e => setNewLog({...newLog, roundType: e.target.value})}
+            required
+            disabled={submitting}
+          >
+            {ROUNDS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
+          </select>
+          <select 
+            className="bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:border-primary outline-none"
+            value={newLog.topic}
+            onChange={e => setNewLog({...newLog, topic: e.target.value})}
+            required
+            disabled={submitting}
+          >
+            <option value="">Select Topic...</option>
+            {TOPIC_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+          <input 
+            type="number"
+            className="bg-slate-900 border border-slate-700 rounded-xl p-3 text-white focus:border-primary outline-none"
+            placeholder="Minutes spent..."
+            value={newLog.timeSpentMinutes}
+            onChange={e => setNewLog({...newLog, timeSpentMinutes: parseInt(e.target.value)})}
+            required
+            disabled={submitting}
+          />
+          <Button type="submit" disabled={submitting} className="flex items-center justify-center gap-2">
+            {submitting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Saving...
+              </>
+            ) : (
+              <>
+                <FiSave />
+                Save Activity
+              </>
+            )}
+          </Button>
+        </form>
+        {error && (
+          <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+      </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        {ROUNDS.map(round => (
-          <Card key={round.id} className="p-4 border-slate-800 bg-slate-900/40">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-slate-400">{round.label}</span>
-              <FiTrendingUp className="text-primary" size={16} />
+      <div className="space-y-4">
+        {logs.map(log => (
+          <Card key={log.id} className="p-5 flex items-center justify-between group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center text-primary border border-slate-800">
+                <FiCalendar />
+              </div>
+              <div>
+                <h4 className="font-bold text-white">{log.topic}</h4>
+                <div className="flex items-center gap-3 mt-1">
+                  <span className="text-xs text-slate-500">{format(new Date(log.createdAt), 'MMM dd, yyyy')}</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+                  <span className="text-xs text-primary">{log.timeSpentMinutes} mins</span>
+                  <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+                  <span className={`text-xs ${
+                    log.difficulty === 'Hard' ? 'text-rose-400' : 
+                    log.difficulty === 'Medium' ? 'text-amber-400' : 'text-emerald-400'
+                  }`}>{log.difficulty}</span>
+                </div>
+              </div>
             </div>
-            <div className="flex items-end gap-2">
-              <span className="text-2xl font-bold text-white">{getCompletionRate(round.id)}%</span>
-              <span className="text-xs text-slate-500 mb-1.5">Consistency</span>
-            </div>
-            <div className="mt-3 w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-              <div 
-                className="bg-primary h-full transition-all duration-500" 
-                style={{ width: `${getCompletionRate(round.id)}%` }}
-              />
-            </div>
+            <button 
+              onClick={() => deleteLog(log.id)}
+              className="p-2 text-slate-600 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all"
+            >
+              Delete
+            </button>
           </Card>
         ))}
-      </div>
-
-      <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/20">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-slate-900/60 border-b border-slate-800">
-              <th className="p-4 text-sm font-semibold text-slate-300">Date</th>
-              {ROUNDS.map(round => (
-                <th key={round.id} className="p-4 text-sm font-semibold text-slate-300 text-center">
-                  {round.label}
-                </th>
-              ))}
-              <th className="p-4 text-sm font-semibold text-slate-300">Topics Learned</th>
-            </tr>
-          </thead>
-          <tbody>
-            {days.map(day => {
-              const dateStr = format(day, 'yyyy-MM-dd');
-              const isToday = isSameDay(day, new Date());
-              const currentNotes = editingTopics[dateStr] !== undefined ? editingTopics[dateStr] : getNotes(dateStr);
-              
-              return (
-                <tr 
-                  key={dateStr} 
-                  className={`border-b border-slate-800/50 hover:bg-white/5 transition-colors ${
-                    isToday ? 'bg-primary/5' : ''
-                  }`}
-                >
-                  <td className="p-4">
-                    <div className="flex flex-col">
-                      <span className={`text-sm font-medium ${isToday ? 'text-primary' : 'text-slate-200'}`}>
-                        {format(day, 'EEE, MMM d')}
-                      </span>
-                      {isToday && <span className="text-[10px] uppercase tracking-wider text-primary font-bold">Today</span>}
-                    </div>
-                  </td>
-                  {ROUNDS.map(round => (
-                    <td key={round.id} className="p-4 text-center">
-                      <button
-                        onClick={() => toggleRound(dateStr, round.id)}
-                        className={`group relative inline-flex items-center justify-center w-8 h-8 rounded-lg border-2 transition-all ${
-                          isCompleted(dateStr, round.id)
-                            ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20'
-                            : 'bg-slate-900/50 border-slate-700 text-slate-500 hover:border-slate-500'
-                        }`}
-                      >
-                        {isCompleted(dateStr, round.id) ? (
-                          <FiCheckCircle size={18} />
-                        ) : (
-                          <FiCircle size={18} className="group-hover:scale-110 transition-transform" />
-                        )}
-                      </button>
-                    </td>
-                  ))}
-                  <td className="p-4 min-w-[300px]">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <textarea
-                          value={currentNotes}
-                          placeholder="e.g. Linked Lists, Binary Search, SQL Joins..."
-                          onChange={(e) => setEditingTopics(prev => ({ ...prev, [dateStr]: e.target.value }))}
-                          rows={1}
-                          className="bg-slate-950/50 border border-slate-800 rounded px-3 py-1.5 text-sm text-slate-200 focus:outline-none focus:border-primary/50 w-full resize-none min-h-[38px] overflow-hidden"
-                          onInput={(e) => {
-                            e.target.style.height = 'auto';
-                            e.target.style.height = e.target.scrollHeight + 'px';
-                          }}
-                        />
-                        {editingTopics[dateStr] !== undefined && (
-                          <button
-                            onClick={() => saveTopics(dateStr)}
-                            className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors shrink-0"
-                            title="Save topics"
-                          >
-                            <FiSave size={18} />
-                          </button>
-                        )}
-                      </div>
-                      
-                      {currentNotes && !editingTopics[dateStr] && (
-                        <div className="flex flex-wrap gap-1.5">
-                          {currentNotes.split(',').map((topic, i) => topic.trim() && (
-                            <span 
-                              key={i} 
-                              className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700 font-medium"
-                            >
-                              {topic.trim()}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
       </div>
     </div>
   );

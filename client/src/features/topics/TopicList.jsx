@@ -6,17 +6,62 @@ import Button from '../../components/ui/Button';
 
 const TopicList = () => {
   const [topics, setTopics] = useState([]);
-  const [progress, setProgress] = useState([]);
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('All');
+
+  const SYLLABUS = [
+    { id: 'dsa-1', name: 'Time & Space Complexity', category: 'DSA', subCategory: 'Basics', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-2', name: 'Recursion & Backtracking', category: 'DSA', subCategory: 'Basics', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-3', name: 'Bit Manipulation', category: 'DSA', subCategory: 'Basics', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-4', name: 'Arrays (Sliding Window, Prefix Sum)', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-5', name: 'Strings (KMP, Rabin-Karp)', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-6', name: 'Linked List (Cycle Detection)', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-7', name: 'Stack & Queue', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-8', name: 'Trees (BST, AVL, Heap)', category: 'DSA', subCategory: 'Non-Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-9', name: 'Graphs (BFS, DFS, Topological)', category: 'DSA', subCategory: 'Non-Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-10', name: 'Dynamic Programming', category: 'DSA', subCategory: 'Algorithms', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'os-1', name: 'Process Management & Threads', category: 'Core Subjects', subCategory: 'Operating Systems', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'os-2', name: 'CPU Scheduling Algorithms', category: 'Core Subjects', subCategory: 'Operating Systems', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'os-3', name: 'Deadlocks (Banker\'s Algorithm)', category: 'Core Subjects', subCategory: 'Operating Systems', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'os-4', name: 'Memory Management (Paging, LRU)', category: 'Core Subjects', subCategory: 'Operating Systems', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dbms-1', name: 'SQL (Joins, Indexing, Queries)', category: 'Core Subjects', subCategory: 'DBMS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dbms-2', name: 'Normalization (1NF to BCNF)', category: 'Core Subjects', subCategory: 'DBMS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dbms-3', name: 'ACID Properties & Transactions', category: 'Core Subjects', subCategory: 'DBMS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'cn-1', name: 'OSI Model (7 Layers)', category: 'Core Subjects', subCategory: 'Computer Networks', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'cn-2', name: 'TCP vs UDP & Congestion Control', category: 'Core Subjects', subCategory: 'Computer Networks', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'cn-3', name: 'IP Addressing & HTTP/HTTPS', category: 'Core Subjects', subCategory: 'Computer Networks', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'oop-1', name: 'Classes, Objects, & Inheritance', category: 'Core Subjects', subCategory: 'OOP', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'oop-2', name: 'Polymorphism & Abstraction', category: 'Core Subjects', subCategory: 'OOP', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'oop-3', name: 'SOLID Principles & Design Patterns', category: 'Core Subjects', subCategory: 'OOP', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'sd-1', name: 'Scalability & Load Balancing', category: 'System Design', subCategory: 'Basics', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'sd-2', name: 'Microservices & Message Queues', category: 'System Design', subCategory: 'Advanced', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'apt-1', name: 'Quantitative Aptitude', category: 'Aptitude', subCategory: 'Math', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'apt-2', name: 'Logical Reasoning & Puzzles', category: 'Aptitude', subCategory: 'Reasoning', totalSubtopics: 1, completedSubtopics: 0 }
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const topicsRes = await api.get('/topics');
-        setTopics(topicsRes.data);
+        const dbTopics = Array.isArray(topicsRes.data) ? topicsRes.data : [];
+        
+        // Merge syllabus with DB progress
+        const merged = SYLLABUS.map(s => {
+          const dbMatch = dbTopics.find(t => t.name === s.name);
+          if (dbMatch) {
+            return { 
+              ...s, 
+              id: dbMatch.id, // Use DB ID for updates
+              completedSubtopics: dbMatch.completedSubtopics,
+              completionPercentage: dbMatch.completionPercentage 
+            };
+          }
+          return { ...s, completionPercentage: 0 };
+        });
+        setTopics(merged);
       } catch (err) {
         console.error("Error fetching topics", err);
+        setTopics(SYLLABUS.map(s => ({ ...s, completionPercentage: 0 })));
       }
     };
     fetchData();
@@ -36,13 +81,22 @@ const TopicList = () => {
     return 'Not Started';
   };
 
+  const [updating, setUpdating] = useState(null); // ID of topic being updated
+
   const handleStatusUpdate = async (topicId, currentStatus) => {
-    const newCompleted = currentStatus === 'Mastered' ? 0 : 1; // Basic toggle for demo
+    const newCompleted = currentStatus === 'Mastered' ? 0 : 1; 
+    setUpdating(topicId);
     try {
       await api.put(`/topics/${topicId}/progress`, newCompleted);
-      setTopics(prev => prev.map(t => t.id === topicId ? { ...t, completedSubtopics: newCompleted, completionPercentage: (newCompleted / (t.totalSubtopics || 1)) * 100 } : t));
+      setTopics(prev => prev.map(t => t.id === topicId ? { 
+        ...t, 
+        completedSubtopics: newCompleted, 
+        completionPercentage: (newCompleted / (t.totalSubtopics || 1)) * 100 
+      } : t));
     } catch (err) {
       console.error("Failed to update status", err);
+    } finally {
+      setUpdating(null);
     }
   };
 

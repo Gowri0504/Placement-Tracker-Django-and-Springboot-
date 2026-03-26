@@ -10,6 +10,8 @@ export default function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('STUDENT');
+  const [college, setCollege] = useState('');
+  const [skills, setSkills] = useState('');
   const [error, setError] = useState('');
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -18,7 +20,8 @@ export default function Signup() {
     e.preventDefault();
     setError('');
     try {
-      await signup(fullName, email, password, role);
+      const skillsArray = skills.split(',').map(s => s.trim()).filter(s => s !== '');
+      await signup(fullName, email, password, role, college, skillsArray);
       navigate('/');
     } catch (err) {
       setError(err);
@@ -78,6 +81,27 @@ export default function Signup() {
               className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-600"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">College / University</label>
+            <input 
+              type="text" 
+              required
+              placeholder="Stanford University"
+              className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-600"
+              value={college}
+              onChange={(e) => setCollege(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Skills (Comma separated)</label>
+            <input 
+              type="text" 
+              placeholder="Java, React, Python"
+              className="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-700 text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-slate-600"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
             />
           </div>
           <div className="space-y-2">

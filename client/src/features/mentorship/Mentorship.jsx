@@ -16,23 +16,29 @@ const Mentorship = () => {
     { role: 'mentor', text: 'Hello! Ready for our session?', time: '10:00 AM' }
   ]);
 
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     fetchData();
-    // Simulate real-time status updates every 30 seconds
-    const interval = setInterval(fetchData, 30000);
+    // Simulate real-time status updates every 60 seconds
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, []);
 
   const fetchData = async () => {
     try {
+      setError(null);
       const [mentorsRes, sessionsRes] = await Promise.all([
         api.get('/mentors'),
         api.get('/mentorship/sessions')
       ]);
-      setMentors(mentorsRes.data);
-      setSessions(sessionsRes.data);
+      setMentors(Array.isArray(mentorsRes.data) ? mentorsRes.data : []);
+      setSessions(Array.isArray(sessionsRes.data) ? sessionsRes.data : []);
     } catch (err) {
       console.error(err);
+      setError('Failed to fetch mentorship data. Please try again.');
+      setMentors([]);
+      setSessions([]);
     } finally {
       setLoading(false);
     }
@@ -88,6 +94,13 @@ const Mentorship = () => {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
+          <Shield size={18} />
+          {error}
+        </div>
+      )}
 
       {activeTab === 'mentors' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

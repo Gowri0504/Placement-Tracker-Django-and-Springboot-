@@ -36,7 +36,7 @@ public class AuthenticationService {
         var refreshToken = jwtService.generateRefreshToken(user);
         
         return AuthenticationResponse.builder()
-                .accessToken(jwtToken)
+                .token(jwtToken)
                 .refreshToken(refreshToken)
                 .user(mapToUserDto(savedUser))
                 .build();
@@ -55,7 +55,7 @@ public class AuthenticationService {
         var refreshToken = jwtService.generateRefreshToken(user);
         
         return AuthenticationResponse.builder()
-                .accessToken(jwtToken)
+                .token(jwtToken)
                 .refreshToken(refreshToken)
                 .user(mapToUserDto(user))
                 .build();

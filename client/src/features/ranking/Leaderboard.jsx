@@ -1,27 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import { Trophy, Medal, Star, Users, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Leaderboard = () => {
+  const { user } = useAuth();
   const [leaders, setLeaders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('Global');
 
   useEffect(() => {
     const fetchLeaders = async () => {
+      setLoading(true);
       try {
-        const res = await api.get('/rankings/leaderboard');
-        setLeaders(res.data);
+        let url = '/rankings/leaderboard';
+        if (filter === 'College') url = `/rankings/leaderboard/college/${user?.college || 'Global'}`;
+        const res = await api.get(url);
+        setLeaders(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         console.error('Error fetching leaderboard:', err);
+        setLeaders([]);
       } finally {
         setLoading(false);
       }
     };
     fetchLeaders();
-  }, []);
+  }, [filter, user?.college]);
 
   if (loading) return (
     <div className="flex justify-center items-center h-64">

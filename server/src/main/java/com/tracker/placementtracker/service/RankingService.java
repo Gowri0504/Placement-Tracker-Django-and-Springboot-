@@ -55,19 +55,27 @@ public class RankingService {
         double coverage = calculateCoverage(topics);
 
         // PRS = (Accuracy * 0.3) + (Difficulty * 0.25) + (Consistency * 0.2) + (Time * 0.15) + (Coverage * 0.1)
-        double prsScore = (accuracy * 0.3) + (difficulty * 0.25) + (consistency * 0.2) + (time * 0.15) + (coverage * 0.1);
+        double prsScore = (accuracy * 30.0) + (difficulty * 25.0) + (consistency * 20.0) + (time * 15.0) + (coverage * 10.0);
         prsScore = Math.round(prsScore * 100.0) / 100.0;
 
         Ranking ranking = rankingRepository.findByUser(user)
                 .orElse(Ranking.builder().user(user).build());
         
         ranking.setPrsScore(prsScore);
+        ranking.setBreakdown(Map.of(
+            "accuracy", accuracy * 100,
+            "difficulty", difficulty * 100,
+            "consistency", consistency * 100,
+            "timeEfficiency", time * 100,
+            "coreCoverage", coverage * 100
+        ));
         Ranking saved = rankingRepository.save(ranking);
         
         // Update user's profile score
         user.setProfileScore(prsScore);
         userRepository.save(user);
         
+        saved.setBreakdown(ranking.getBreakdown()); // Restore transient field after save
         return saved;
     }
 

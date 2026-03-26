@@ -9,6 +9,7 @@ const InsightsCard = ({ prsData, stats }) => {
     if (!prsData) return [];
 
     const { breakdown, prs } = prsData;
+    if (!breakdown) return [];
 
     // Consistency Insight
     if (breakdown.consistency < 60) {

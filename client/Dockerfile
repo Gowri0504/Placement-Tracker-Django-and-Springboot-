@@ -10,6 +10,10 @@ RUN npm config set registry https://registry.npmjs.org/ \
 
 COPY package*.json ./
 
+# Accept build arguments
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # Install dependencies with safer flags for better compatibility and reliability
 RUN npm install --legacy-peer-deps --no-audit --prefer-offline
 

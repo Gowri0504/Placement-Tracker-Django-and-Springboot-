@@ -23,9 +23,10 @@ const Forum = () => {
     try {
       const url = filter === 'All' ? '/forum/posts' : `/forum/posts?category=${filter}`;
       const { data } = await api.get(url);
-      setPosts(data);
+      setPosts(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setPosts([]);
     } finally {
       setLoading(false);
     }

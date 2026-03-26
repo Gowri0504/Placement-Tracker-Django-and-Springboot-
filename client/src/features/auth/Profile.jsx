@@ -23,14 +23,21 @@ const Badge = ({ name, icon, date, description }) => (
 
 const Profile = () => {
   const { user } = useAuth();
-  const [profile, setProfile] = useState(user?.profile || {});
+  const [profile, setProfile] = useState({
+    fullName: user?.fullName || '',
+    college: user?.college || '',
+    skills: user?.skills?.join(', ') || '',
+    targetRole: '',
+    graduationYear: new Date().getFullYear(),
+    githubProfile: ''
+  });
   const [editing, setEditing] = useState(false);
 
   const handleSave = async () => {
     try {
-      await api.put('/user/profile', profile);
+      const skillsArray = profile.skills.split(',').map(s => s.trim()).filter(s => s !== '');
+      await api.put('/user/profile', { ...profile, skills: skillsArray });
       setEditing(false);
-      // Ideally update context user here too
     } catch (err) {
       console.error(err);
     }
@@ -47,19 +54,19 @@ const Profile = () => {
         {/* Sidebar Info */}
         <Card className="flex flex-col items-center text-center p-8">
           <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-4xl font-bold text-white mb-4">
-            {user?.username?.[0].toUpperCase()}
+            {(user?.fullName || user?.email || 'U')[0].toUpperCase()}
           </div>
-          <h2 className="text-2xl font-bold text-white">{user?.username}</h2>
+          <h2 className="text-2xl font-bold text-white">{user?.fullName}</h2>
           <p className="text-slate-400">{user?.email}</p>
           
           <div className="mt-6 w-full space-y-2">
             <div className="flex justify-between text-sm py-2 border-b border-slate-700">
-              <span className="text-slate-400">Level</span>
-              <span className="text-white font-bold">{user?.gamification?.level || 1}</span>
+              <span className="text-slate-400">Role</span>
+              <span className="text-white font-bold">{user?.role}</span>
             </div>
             <div className="flex justify-between text-sm py-2 border-b border-slate-700">
-              <span className="text-slate-400">XP</span>
-              <span className="text-primary font-bold">{user?.gamification?.xp || 0}</span>
+              <span className="text-slate-400">Score</span>
+              <span className="text-primary font-bold">{user?.profileScore || 0}</span>
             </div>
           </div>
         </Card>

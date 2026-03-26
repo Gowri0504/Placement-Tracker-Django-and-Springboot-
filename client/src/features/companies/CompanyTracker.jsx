@@ -38,6 +38,9 @@ const CompanyTracker = () => {
     currentRound: 0
   });
 
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     fetchCompanies();
   }, []);
@@ -45,14 +48,17 @@ const CompanyTracker = () => {
   const fetchCompanies = async () => {
     try {
       const res = await api.get('/companies');
-      setCompanies(res.data);
+      setCompanies(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setCompanies([]);
     }
   };
 
   const handleAdd = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError(null);
     try {
       await api.post('/companies', formData);
       fetchCompanies();
@@ -60,6 +66,9 @@ const CompanyTracker = () => {
       setFormData({ name: '', pattern: '', status: 'APPLIED', currentRound: 0 });
     } catch (err) {
       console.error(err);
+      setError('Failed to add company. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -274,6 +283,7 @@ const CompanyTracker = () => {
                     <label className="text-xs font-bold text-slate-500 uppercase">Company Name</label>
                     <select 
                       required
+                      disabled={submitting}
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-primary outline-none"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -286,6 +296,7 @@ const CompanyTracker = () => {
                   <div className="space-y-1">
                     <label className="text-xs font-bold text-slate-500 uppercase">Pattern / Notes</label>
                     <textarea 
+                      disabled={submitting}
                       className="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-white focus:border-primary outline-none"
                       placeholder="e.g. 2 Technical Rounds + 1 HR"
                       value={formData.pattern}
@@ -293,17 +304,20 @@ const CompanyTracker = () => {
                     />
                   </div>
 
+                  {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+
                   <div className="pt-4 flex gap-3">
                     <Button 
                       type="button" 
                       variant="ghost" 
                       className="flex-1"
                       onClick={() => setIsAdding(false)}
+                      disabled={submitting}
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" className="flex-1">
-                      Add Company
+                    <Button type="submit" className="flex-1" disabled={submitting}>
+                      {submitting ? 'Adding...' : 'Add Company'}
                     </Button>
                   </div>
                 </form>

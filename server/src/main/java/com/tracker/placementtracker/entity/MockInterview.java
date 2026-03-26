@@ -6,16 +6,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
-
-import java.util.Map;
+import java.util.List;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "rankings")
-public class Ranking {
+@Table(name = "mock_interviews")
+public class MockInterview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,19 +23,18 @@ public class Ranking {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(nullable = false)
-    private Double prsScore; // PRS = (Accuracy * 0.3) + (Difficulty * 0.25) + (Consistency * 0.2) + (Time * 0.15) + (Coverage * 0.1)
+    private String type; // Technical, HR, System Design
+    private String status; // In Progress, Completed
+    private Integer overallScore;
+    private String overallFeedback;
 
-    private Integer globalRank;
+    @ElementCollection
+    private List<String> questions;
 
-    @Transient
-    private Map<String, Double> breakdown;
-
-    private LocalDateTime updatedAt;
+    private LocalDateTime createdAt;
 
     @PrePersist
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
     }
 }

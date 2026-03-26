@@ -14,7 +14,8 @@ export const AuthProvider = ({ children }) => {
       try {
         const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
-          setUser(JSON.parse(userInfo));
+          const data = JSON.parse(userInfo);
+          setUser(data.user || data); // Handle both old and new formats
         }
       } catch (error) {
         console.error('Error parsing user info from localStorage', error);
@@ -29,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const { data } = await api.post('/auth/login', { email, password });
-      setUser(data);
+      setUser(data.user);
       localStorage.setItem('userInfo', JSON.stringify(data));
       return data;
     } catch (error) {
@@ -37,10 +38,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const signup = async (fullName, email, password, role = 'STUDENT') => {
+  const signup = async (fullName, email, password, role = 'STUDENT', college = '', skills = []) => {
     try {
-      const { data } = await api.post('/auth/register', { fullName, email, password, role });
-      setUser(data);
+      const { data } = await api.post('/auth/register', { fullName, email, password, role, college, skills });
+      setUser(data.user);
       localStorage.setItem('userInfo', JSON.stringify(data));
       return data;
     } catch (error) {

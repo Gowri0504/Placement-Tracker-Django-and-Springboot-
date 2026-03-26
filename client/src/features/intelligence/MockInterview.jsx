@@ -21,9 +21,10 @@ const MockInterview = () => {
   const fetchInterviews = async () => {
     try {
       const { data } = await api.get('/interviews');
-      setInterviews(data);
+      setInterviews(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error(err);
+      setInterviews([]);
     } finally {
       setLoading(false);
     }
@@ -49,10 +50,11 @@ const MockInterview = () => {
   };
 
   const handleSubmit = async () => {
+    if (!activeInterview?.questions) return;
     setSubmitting(true);
     try {
       const formattedAnswers = activeInterview.questions.map((q, idx) => ({
-        questionId: q._id,
+        questionId: q._id || idx,
         userAnswer: answers[idx] || ''
       }));
       const { data } = await api.post(`/interviews/${activeInterview._id}/submit`, { answers: formattedAnswers });

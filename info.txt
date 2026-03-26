@@ -1,70 +1,88 @@
-       
-The Placement Preparation Tracker is now a fully functional full-stack application with a microservice architecture. I have implemented the core backend in Spring Boot, the AI-powered intelligence in Django, and connected the existing React frontend to these services.
+================================================================================
+🚀 PLACEMENT TRACKER - FULL-STACK MICROSERVICES PROJECT DOCUMENTATION
+================================================================================
 
-### **Key Components Implemented**
+1. PROJECT OVERVIEW
+------------------
+Placement Tracker is an AI-powered preparation platform designed to help students 
+track their DSA progress, analyze resumes using Machine Learning, and simulate 
+mock interviews. It features a microservice architecture for scalability.
 
-**1. Main Backend (Spring Boot)**
-- **Auth System**: [AuthenticationController.java](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/server/src/main/java/com/tracker/placementtracker/controller/AuthenticationController.java) handles JWT-based login and registration with refresh tokens.
-- **Role-Based Access**: Supports `STUDENT`, `MENTOR`, and `ADMIN` roles.
-- **Ranking System**: Implemented the **PRS Formula** in [RankingService.java](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/server/src/main/java/com/tracker/placementtracker/service/RankingService.java) to calculate global leaderboards.
-- **Modules**: Full REST APIs for [DailyLogs](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/server/src/main/java/com/tracker/placementtracker/controller/DailyLogController.java), [Topics](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/server/src/main/java/com/tracker/placementtracker/controller/TopicController.java), [Problems](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/server/src/main/java/com/tracker/placementtracker/controller/ProblemStatController.java), [Companies](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/server/src/main/java/com/tracker/placementtracker/controller/CompanyController.java), and [Interviews](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/server/src/main/java/com/tracker/placementtracker/controller/InterviewController.java).
-- **ML Integration**: [MLService.java](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/server/src/main/java/com/tracker/placementtracker/service/MLService.java) acts as a bridge to call the Django AI microservice internally.
+2. TECH STACK & ARCHITECTURE (VIVA EXPLANATION)
+-----------------------------------------------
 
-**2. AI Microservice (Django)**
-- **Resume Analyzer**: [views.py](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/ml-service/api/views.py) extracts text from PDF resumes, calculates ATS scores, and suggests missing skills.
-- **Smart Insights**: Provides weak topic detection and readiness score predictions.
+A. FRONTEND: React (Vite, Tailwind CSS, Framer Motion)
+   - Why React? Component-based architecture allows building a modular and 
+     reusable UI. Virtual DOM ensures high performance for real-time dashboards.
+   - Why Vite? Extremely fast build tool and development server compared to CRA.
+   - Why Tailwind? Utility-first CSS for rapid, responsive, and modern UI design.
+   - Why Framer Motion? To provide smooth, professional animations.
 
-**3. Frontend Integration (React)**
-- **Auth Integration**: [AuthContext.jsx](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/src/context/AuthContext.jsx) updated to handle real backend registration and login.
-- **Feature Connectivity**: Connected [TopicList.jsx](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/src/features/topics/TopicList.jsx), [ProblemTracker.jsx](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/src/features/problems/ProblemTracker.jsx), [CompanyTracker.jsx](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/src/features/companies/CompanyTracker.jsx), and [ResumeAnalyzer.jsx](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/src/features/intelligence/ResumeAnalyzer.jsx) to their respective backend endpoints.
-- **Dashboard**: [Dashboard.jsx](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/src/features/dashboard/Dashboard.jsx) now displays real-time analytics from the backend.
+B. BACKEND: Spring Boot (Java, Spring Security, JPA)
+   - Why Spring Boot? Robust, enterprise-grade framework. Handles complex 
+     business logic and multi-module integration.
+   - Why Spring Security + JWT? Stateless authentication is perfect for 
+     microservices. Tokens ensure secure communication between services.
 
-### **Project Structure**
-- `server/`: Spring Boot Maven project (Java 17).
-- `ml-service/`: Django REST Framework project (Python 3.10+).
-- `client/`: React + Vite + Tailwind frontend.
+C. ML SERVICE: Python (Django REST Framework, PyPDF2)
+   - Why Python? The industry standard for AI/ML. 
+   - Why Django? Provides a secure and scalable way to expose ML models as 
+     REST APIs quickly.
 
-### **Getting Started**
-1.  **Database**: Create a PostgreSQL database named `placement_tracker`.
-2.  **ML Service**:
-    ```bash
-    cd ml-service
-    pip install -r requirements.txt
-    python manage.py runserver 8000
-    ```
-3.  **Spring Boot**: Update `application.properties` with DB credentials and run:
-    ```bash
-    cd server
-    mvn spring-boot:run
-    ```
-4.  **Frontend**:
-    ```bash
-    cd client
-    npm run dev
-    ```
+D. DATABASE & CACHE: PostgreSQL & Redis
+   - Why PostgreSQL? Reliable relational database for structured data.
+   - Why Redis? High-performance caching to speed up leaderboard calculations.
 
-Full setup details and database schema are available in the [README.md](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/README.md).
+E. DEVOPS: Docker & Docker Compose
+   - Why Docker? Ensures the app runs identically everywhere by containerizing 
+     the frontend, backend, and ML services.
 
----
+3. PROJECT FLOW & ARCHITECTURE
+-----------------------------
 
-### **DevOps & Docker Fixes**
+A. AUTHENTICATION FLOW (JWT)
+   1. User submits Login/Signup credentials via React.
+   2. Spring Boot validates credentials and generates a JWT (JSON Web Token).
+   3. Token is sent to the Frontend and stored in 'localStorage'.
+   4. Axios Interceptor automatically attaches this token to the 'Authorization' 
+      header for every subsequent API request.
+   5. Spring Boot 'JwtAuthFilter' validates the token before allowing access 
+      to protected resources.
 
-**1. Frontend Build Optimization ([client/Dockerfile](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/Dockerfile))**
-- **Node Version**: Upgraded to `node:20-alpine` to support Vite's latest requirements.
-- Network Stability: Added `npm config` settings for `registry`, `fetch-retries` (5), `mintimeout` (20s), and `maxtimeout` (120s) to fix `ECONNRESET` issues on slow networks. Removed invalid `timeout` option.
-- Safer Installation: Used `--legacy-peer-deps`, `--no-audit`, and `--prefer-offline` for a more stable dependency installation.
+B. RESUME ANALYZER FLOW
+   1. User uploads a PDF resume in the Frontend.
+   2. React sends the file as 'multipart/form-data' to the Spring Boot backend.
+   3. Spring Boot forwards the file to the Django ML Service (http://ml-service:8000/analyze/).
+   4. Django parses the PDF using PyPDF2, extracts skills, and calculates an 
+      ATS score based on industry keywords.
+   5. Results are sent back through Spring Boot to the React UI for display.
 
-**2. Build Context Optimization ([client/.dockerignore](file:///d:/PROJECTS/Alumni%20Project/Placement%20Tracker/client/.dockerignore))**
-- Added `.dockerignore` to exclude `node_modules`, `dist`, and version control files, reducing image build time and context size.
+C. DASHBOARD ANALYTICS FLOW
+   1. Frontend requests analytics data from '/api/analytics'.
+   2. Spring Boot queries PostgreSQL for user's solved problems and logs.
+   3. It calculates distribution stats (Easy/Medium/Hard) and readiness scores.
+   4. React receives the JSON and renders it using 'Recharts' within 
+      ResponsiveContainers to ensure correct scaling.
 
-**3. Frontend Missing Entry Fix**
-- Recreated missing `index.html` in `client/` root to allow Vite build to succeed.
+D. DOCKER ARCHITECTURE
+   - The project uses a bridge network where services communicate by name:
+     - 'frontend' (Port 5173)
+     - 'backend' (Port 8081)
+     - 'ml-service' (Port 8000)
+     - 'postgres' (Port 5432)
+     - 'redis' (Port 6379)
 
-**4. Port Conflict Resolution**
-- Changed backend host port from `8080` to `8081` in `docker-compose.yml` to avoid conflicts with existing system processes.
-- Updated `client/.env` to point `VITE_API_URL` to `http://localhost:8081/api`.
+4. HOW TO RUN
+------------
+1. Install Docker Desktop.
+2. Run `docker-compose up --build` in the root folder.
+3. Access at http://localhost:5173
 
-**5. Backend Compilation Fix**
-- Added missing `java.util.List` import in `RegisterRequest.java`.
+5. THE PRS FORMULA
+-----------------
+PRS = (Accuracy * 30%) + (Difficulty * 25%) + (Consistency * 20%) + 
+      (Time Efficiency * 15%) + (Core Coverage * 10%)
 
-
+================================================================================
+✨ FULL FLOW: Frontend → Axios (JWT) → Spring Boot → PostgreSQL / ML → Response
+================================================================================

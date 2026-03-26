@@ -3,22 +3,27 @@ import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import { FileText, Search, CheckCircle, AlertTriangle, Lightbulb, Download, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-
 const ResumeAnalyzer = () => {
   const [file, setFile] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [resumeData, setResumeData] = useState(null);
+  const [exporting, setExporting] = useState(false);
+  const reportRef = useRef(null);
+
+  const [error, setError] = useState(null);
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
+    setError(null);
   };
 
   const handleAnalyze = async () => {
     if (!file) return;
     setAnalyzing(true);
+    setError(null);
     const formData = new FormData();
     formData.append('resume', file);
     try {
@@ -28,6 +33,7 @@ const ResumeAnalyzer = () => {
       setResumeData(data);
     } catch (err) {
       console.error(err);
+      setError(err.response?.data?.error || err.message || 'Analysis failed. Please try again.');
     } finally {
       setAnalyzing(false);
     }
@@ -58,10 +64,23 @@ const ResumeAnalyzer = () => {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Loading Resume Intelligence...</div>;
-
   return (
     <div className="max-w-6xl mx-auto space-y-8">
+      <AnimatePresence>
+        {analyzing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center space-y-4"
+          >
+            <Loader2 className="w-16 h-16 animate-spin text-primary" />
+            <h3 className="text-xl font-bold text-white">Analyzing Your Resume...</h3>
+            <p className="text-slate-400">Our AI is extracting skills and predicting ATS score.</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div>
         <h1 className="text-3xl font-display font-bold text-white">Resume Intelligence</h1>
         <p className="text-slate-400 mt-2">ATS Score Prediction & AI-Powered Skill Gap Analysis.</p>
@@ -103,10 +122,17 @@ const ResumeAnalyzer = () => {
               {analyzing ? "AI is Analyzing..." : "Analyze Resume"}
             </Button>
           </div>
+
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm flex items-center gap-3">
+              <AlertTriangle size={18} />
+              {error}
+            </div>
+          )}
         </Card>
 
         {/* Results Sidebar */}
-        <div className="space-y-6">
+        <div className="space-y-6" ref={reportRef}>
           {resumeData ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -148,6 +174,16 @@ const ResumeAnalyzer = () => {
                   ))}
                 </div>
               </Card>
+
+              <Button 
+                variant="ghost" 
+                className="w-full text-slate-400 hover:text-white"
+                onClick={exportPDF}
+                disabled={exporting}
+              >
+                {exporting ? <Loader2 className="animate-spin mr-2" size={16} /> : <Download className="mr-2" size={16} />}
+                Export Analysis Report
+              </Button>
             </motion.div>
           ) : (
             <Card className="p-12 text-center border-dashed border-slate-800 bg-transparent">

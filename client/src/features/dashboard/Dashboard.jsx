@@ -4,6 +4,7 @@ import {
 } from 'recharts';
 import { motion } from 'framer-motion';
 import { FiActivity, FiCheckCircle, FiCode, FiTrendingUp } from 'react-icons/fi';
+import { Loader2 } from 'lucide-react';
 import api from '../../api/axios';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
@@ -51,16 +52,29 @@ const Dashboard = () => {
           api.get('/analytics'),
           api.get('/rankings/my-rank')
         ]);
-        setStats(statsRes.data);
-        setPrsData(prsRes.data);
+        setStats(statsRes.data || {});
+        setPrsData(prsRes.data || {});
       } catch (err) {
         console.error("Failed to fetch dashboard data", err);
+        setStats({});
+        setPrsData({});
       } finally {
         setLoading(false);
       }
     };
     fetchData();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex flex-col items-center gap-4 text-slate-400">
+          <Loader2 className="w-12 h-12 animate-spin text-primary" />
+          <p className="font-medium animate-pulse">Syncing your progress...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Mock data for UI demo if API returns empty/error or while loading
   const mockData = {
@@ -154,46 +168,58 @@ const Dashboard = () => {
         {/* Radar Chart */}
         <Card className="lg:col-span-1 h-[400px] flex flex-col">
           <h3 className="text-xl font-bold text-white mb-6">Skill Analysis</h3>
-          <div className="flex-1 w-full min-h-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillsData}>
-                <PolarGrid stroke="#334155" />
-                <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
-                <Radar
-                  name="Skills"
-                  dataKey="A"
-                  stroke="#8b5cf6"
-                  strokeWidth={2}
-                  fill="#8b5cf6"
-                  fillOpacity={0.3}
-                  dot={<CustomDot />}
-                />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
-                  itemStyle={{ color: '#f8fafc' }}
-                />
-              </RadarChart>
-            </ResponsiveContainer>
+          <div className="flex-1 w-full min-h-0" style={{ minHeight: '300px' }}>
+            {skillsData && skillsData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillsData}>
+                  <PolarGrid stroke="#334155" />
+                  <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
+                  <Radar
+                    name="Skills"
+                    dataKey="A"
+                    stroke="#8b5cf6"
+                    strokeWidth={2}
+                    fill="#8b5cf6"
+                    fillOpacity={0.3}
+                    dot={<CustomDot />}
+                  />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
+                    itemStyle={{ color: '#f8fafc' }}
+                  />
+                </RadarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-500 text-sm italic">
+                No skill data available
+              </div>
+            )}
           </div>
         </Card>
 
         {/* Main Chart */}
         <Card className="lg:col-span-3 h-[400px] flex flex-col">
           <h3 className="text-xl font-bold text-white mb-6">Problem Solving Distribution</h3>
-          <div className="flex-1 w-full min-h-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                <XAxis dataKey="name" stroke="#94a3b8" />
-                <YAxis stroke="#94a3b8" />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
-                  itemStyle={{ color: '#f8fafc' }}
-                />
-                <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="flex-1 w-full min-h-0" style={{ minHeight: '300px' }}>
+            {chartData && chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                  <XAxis dataKey="name" stroke="#94a3b8" />
+                  <YAxis stroke="#94a3b8" />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', color: '#f8fafc' }}
+                    itemStyle={{ color: '#f8fafc' }}
+                  />
+                  <Bar dataKey="value" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-slate-500 text-sm italic">
+                No problem data available
+              </div>
+            )}
           </div>
         </Card>
       </div>

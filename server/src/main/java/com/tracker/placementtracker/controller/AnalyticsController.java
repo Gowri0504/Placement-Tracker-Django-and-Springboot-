@@ -4,18 +4,6 @@ import com.tracker.placementtracker.entity.ProblemStat;
 import com.tracker.placementtracker.entity.User;
 import com.tracker.placementtracker.service.ProblemStatService;
 import com.tracker.placementtracker.service.TopicService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.tracker.placementtracker.service.MLService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,11 +71,11 @@ public class AnalyticsController {
         
         // ML Insights (Weak Topics & Suggestions)
         Map<String, Object> mlRequest = new HashMap<>();
-        mlRequest.put("stats", Map.of("weak_topics", getWeakTopics(stats)));
+        mlRequest.put("stats", Map.of("weak_topics", getWeakTopics(user)));
         try {
             response.put("mlInsights", mlService.getSuggestions(mlRequest));
         } catch (Exception e) {
-            response.put("mlInsights", Map.of("suggestions", List.of("Keep practicing to get more insights!")));
+            response.put("mlInsights", Map.of("suggestions", Collections.singletonList("Keep practicing to get more insights!")));
         }
         
         return ResponseEntity.ok(response);
@@ -106,10 +95,9 @@ public class AnalyticsController {
                 .collect(Collectors.toList());
     }
 
-    private List<String> getWeakTopics(List<ProblemStat> stats) {
+    private List<String> getWeakTopics(User user) {
         // Logic to detect topics with low accuracy
-        // Since ProblemStat doesn't have topic yet, let's assume we use Topic completion
-        return topicService.getTopicsByUser(stats.get(0).getUser()).stream()
+        return topicService.getTopicsByUser(user).stream()
                 .filter(t -> t.getCompletionPercentage() < 40)
                 .map(t -> t.getName())
                 .collect(Collectors.toList());

@@ -20,17 +20,23 @@ const ProblemTracker = () => {
     fetchProblems();
   }, []);
 
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
+
   const fetchProblems = async () => {
     try {
       const res = await api.get('/problems');
-      setProblems(res.data);
+      setProblems(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setProblems([]);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError(null);
     try {
       await api.post('/problems', formData);
       setShowForm(false);
@@ -40,6 +46,9 @@ const ProblemTracker = () => {
       fetchProblems();
     } catch (err) {
       console.error(err);
+      setError('Failed to log problem. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -72,6 +81,7 @@ const ProblemTracker = () => {
                 <label className="block text-sm font-medium text-slate-400 mb-1">Problem Title</label>
                 <input 
                   required
+                  disabled={submitting}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:border-primary focus:outline-none"
                   value={formData.title}
                   onChange={e => setFormData({...formData, title: e.target.value})}
@@ -81,6 +91,7 @@ const ProblemTracker = () => {
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1">Link</label>
                 <input 
+                  disabled={submitting}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:border-primary focus:outline-none"
                   value={formData.link}
                   onChange={e => setFormData({...formData, link: e.target.value})}
@@ -90,6 +101,7 @@ const ProblemTracker = () => {
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1">Platform</label>
                 <select 
+                  disabled={submitting}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:border-primary focus:outline-none"
                   value={formData.platform}
                   onChange={e => setFormData({...formData, platform: e.target.value})}
@@ -100,28 +112,46 @@ const ProblemTracker = () => {
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1">Difficulty</label>
                 <select 
+                  disabled={submitting}
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:border-primary focus:outline-none"
                   value={formData.difficulty}
                   onChange={e => setFormData({...formData, difficulty: e.target.value})}
                 >
-                  {['Easy', 'Medium', 'Hard'].map(o => <option key={o} value={o}>{o}</option>)}
+                  {['Easy', 'Medium', 'Hard'].map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-400 mb-1">Time Taken (min)</label>
                 <input 
+                  disabled={submitting}
                   type="number"
                   className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white focus:border-primary focus:outline-none"
                   value={formData.timeTakenMinutes}
                   onChange={e => setFormData({...formData, timeTakenMinutes: parseInt(e.target.value)})}
-                  placeholder="30"
                 />
               </div>
+              <div className="flex items-center gap-2 pt-8">
+                <input 
+                  disabled={submitting}
+                  type="checkbox"
+                  id="isCorrect"
+                  className="w-5 h-5 accent-primary"
+                  checked={formData.isCorrect}
+                  onChange={e => setFormData({...formData, isCorrect: e.target.checked})}
+                />
+                <label htmlFor="isCorrect" className="text-sm font-medium text-slate-400">Solved Correctly</label>
+              </div>
             </div>
-            <div className="flex justify-end gap-3 mt-6">
-              <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>Cancel</Button>
-              <Button type="submit">Save Problem</Button>
+            
+            <div className="flex gap-4 pt-4">
+              <Button type="submit" className="flex-1" disabled={submitting}>
+                {submitting ? 'Logging...' : 'Log Problem'}
+              </Button>
+              <Button variant="outline" type="button" className="flex-1" onClick={() => setShowForm(false)} disabled={submitting}>
+                Cancel
+              </Button>
             </div>
+            {error && <p className="text-red-500 text-xs text-center mt-2">{error}</p>}
           </form>
         </Card>
       )}
