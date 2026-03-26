@@ -60,3 +60,7 @@ Full setup details and database schema are available in the [README.md](file:///
 **3. Frontend Missing Entry Fix**
 - Recreated missing `index.html` in `client/` root to allow Vite build to succeed.
 
+**4. Backend Compilation Fix**
+- Added missing `java.util.List` import in `RegisterRequest.java`.
+
+
