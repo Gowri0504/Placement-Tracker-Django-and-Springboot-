@@ -10,12 +10,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkUser = () => {
+    const checkUser = async () => {
       try {
         const userInfo = localStorage.getItem('userInfo');
         if (userInfo) {
           const data = JSON.parse(userInfo);
-          setUser(data.user || data); // Handle both old and new formats
+          
+          // Set user from local storage first for immediate UI feedback
+          setUser(data.user || data);
+          
+          // Refresh user data from backend in background
+          try {
+            const response = await api.get('/auth/me');
+            setUser(response.data);
+            localStorage.setItem('userInfo', JSON.stringify({ ...data, user: response.data }));
+          } catch (e) {
+            console.error("Session verification failed", e);
+            // If it's a 401/403, axios interceptor will handle redirect
+          }
         }
       } catch (error) {
         console.error('Error parsing user info from localStorage', error);

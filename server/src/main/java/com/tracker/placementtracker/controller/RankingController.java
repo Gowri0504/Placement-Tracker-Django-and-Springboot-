@@ -19,6 +19,7 @@ public class RankingController {
 
     @GetMapping("/leaderboard")
     public ResponseEntity<List<Ranking>> getLeaderboard() {
+        rankingService.updateAllRankings(); // Force update for demo accuracy
         return ResponseEntity.ok(rankingService.getLeaderboard());
     }
 

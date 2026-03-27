@@ -71,7 +71,7 @@ const ProjectPortfolio = () => {
       liveLink: project.liveLink || '',
       confidenceScore: project.confidenceScore
     });
-    setEditingId(project._id);
+    setEditingId(project.id);
     setIsAdding(true);
   };
 
@@ -187,12 +187,12 @@ const ProjectPortfolio = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {projects.map(project => (
-          <Card key={project._id} className="group hover:border-primary/50 transition-colors relative">
+          <Card key={project.id} className="group hover:border-primary/50 transition-colors relative">
             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <button onClick={() => handleEdit(project)} className="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-white hover:bg-slate-700">
                 <FiEdit size={14} />
               </button>
-              <button onClick={() => handleDelete(project._id)} className="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10">
+              <button onClick={() => handleDelete(project.id)} className="p-2 bg-slate-800 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-500/10">
                 <FiTrash2 size={14} />
               </button>
             </div>

@@ -29,7 +29,7 @@ const Mentorship = () => {
     try {
       setError(null);
       const [mentorsRes, sessionsRes] = await Promise.all([
-        api.get('/mentors'),
+        api.get('/mentorship/mentors'),
         api.get('/mentorship/sessions')
       ]);
       setMentors(Array.isArray(mentorsRes.data) ? mentorsRes.data : []);

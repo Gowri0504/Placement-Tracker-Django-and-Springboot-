@@ -24,8 +24,11 @@ public class ProblemStatService {
         return saved;
     }
 
-    public void deleteStat(Long id) {
+    public void deleteStat(Long id, User user) {
         ProblemStat stat = problemStatRepository.findById(id).orElseThrow();
+        if (!stat.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized to delete this stat");
+        }
         problemStatRepository.deleteById(id);
         rankingService.updateUserRanking(stat.getUser());
     }

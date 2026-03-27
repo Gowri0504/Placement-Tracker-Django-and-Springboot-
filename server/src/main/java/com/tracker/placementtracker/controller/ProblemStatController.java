@@ -29,8 +29,8 @@ public class ProblemStatController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStat(@PathVariable Long id) {
-        problemStatService.deleteStat(id);
+    public ResponseEntity<Void> deleteStat(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        problemStatService.deleteStat(id, user);
         return ResponseEntity.noContent().build();
     }
 }

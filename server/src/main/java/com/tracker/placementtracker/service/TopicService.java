@@ -36,4 +36,21 @@ public class TopicService {
         }
         return topicRepository.save(topic);
     }
+
+    public Topic updateTopicStatus(User user, Topic topicRequest) {
+        Topic topic = topicRepository.findByUserAndName(user, topicRequest.getName())
+                .orElse(Topic.builder()
+                        .user(user)
+                        .name(topicRequest.getName())
+                        .category(topicRequest.getCategory())
+                        .subCategory(topicRequest.getSubCategory())
+                        .totalSubtopics(topicRequest.getTotalSubtopics())
+                        .build());
+        
+        topic.setCompletedSubtopics(topicRequest.getCompletedSubtopics());
+        if (topic.getTotalSubtopics() > 0) {
+            topic.setCompletionPercentage((double) topic.getCompletedSubtopics() / topic.getTotalSubtopics() * 100);
+        }
+        return topicRepository.save(topic);
+    }
 }

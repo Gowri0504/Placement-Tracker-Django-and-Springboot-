@@ -29,8 +29,8 @@ public class DailyLogController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteLog(@PathVariable Long id) {
-        dailyLogService.deleteLog(id);
+    public ResponseEntity<Void> deleteLog(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        dailyLogService.deleteLog(id, user);
         return ResponseEntity.noContent().build();
     }
 }

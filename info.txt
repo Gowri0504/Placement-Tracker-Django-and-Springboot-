@@ -84,5 +84,19 @@ PRS = (Accuracy * 30%) + (Difficulty * 25%) + (Consistency * 20%) +
       (Time Efficiency * 15%) + (Core Coverage * 10%)
 
 ================================================================================
+🛠️ PROJECT FIX LOGS (LATEST)
+================================================================================
+1. FIXED: 404 Routing issues on frontend navigation. Added 'RedirectController' 
+   to forward all non-API requests to 'index.html'.
+2. FIXED: Spring Security redirecting to '/login?expired=true'. Configured 
+   stateless 'AuthenticationEntryPoint' to return 401 JSON instead of redirecting.
+3. FIXED: CORS configuration to support 'allowCredentials(true)' and specific 
+   origin patterns for Vite/React development.
+4. FIXED: Database connectivity defaults in 'application.properties' to support 
+   both local and containerized environments seamlessly.
+5. FIXED: Entity mapping and Lombok issues by ensuring all JPA entities have 
+   proper @Data, @Builder, and constructor annotations.
+
+================================================================================
 ✨ FULL FLOW: Frontend → Axios (JWT) → Spring Boot → PostgreSQL / ML → Response
 ================================================================================

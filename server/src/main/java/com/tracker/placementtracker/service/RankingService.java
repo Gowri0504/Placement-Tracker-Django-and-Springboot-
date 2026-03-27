@@ -41,6 +41,28 @@ public class RankingService {
         }
     }
 
+    @Transactional(readOnly = true)
+    @Cacheable(value = "global_leaderboard", key = "'leaderboard:global'")
+    public List<Ranking> getLeaderboard() {
+        return rankingRepository.findAllByOrderByPrsScoreDesc();
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "college_leaderboard", key = "'leaderboard:college:' + #college")
+    public List<Ranking> getCollegeLeaderboard(String college) {
+        return rankingRepository.findAllByOrderByPrsScoreDesc().stream()
+                .filter(r -> r.getUser() != null && college.equalsIgnoreCase(r.getUser().getCollege()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "skill_leaderboard", key = "'leaderboard:skill:' + #skill")
+    public List<Ranking> getSkillLeaderboard(String skill) {
+        return rankingRepository.findAllByOrderByPrsScoreDesc().stream()
+                .filter(r -> r.getUser() != null && r.getUser().getSkills() != null && r.getUser().getSkills().contains(skill))
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     @CacheEvict(value = {"global_leaderboard", "college_leaderboard", "skill_leaderboard"}, allEntries = true)
     public Ranking updateUserRanking(User user) {
@@ -122,24 +144,5 @@ public class RankingService {
         if (topics.isEmpty()) return 0.0;
         double totalCompletion = topics.stream().mapToDouble(Topic::getCompletionPercentage).sum();
         return totalCompletion / (topics.size() * 100.0);
-    }
-
-    @Cacheable(value = "global_leaderboard", key = "'leaderboard:global'")
-    public List<Ranking> getLeaderboard() {
-        return rankingRepository.findAllByOrderByPrsScoreDesc();
-    }
-
-    @Cacheable(value = "college_leaderboard", key = "'leaderboard:college:' + #college")
-    public List<Ranking> getCollegeLeaderboard(String college) {
-        return rankingRepository.findAllByOrderByPrsScoreDesc().stream()
-                .filter(r -> college.equalsIgnoreCase(r.getUser().getCollege()))
-                .collect(Collectors.toList());
-    }
-
-    @Cacheable(value = "skill_leaderboard", key = "'leaderboard:skill:' + #skill")
-    public List<Ranking> getSkillLeaderboard(String skill) {
-        return rankingRepository.findAllByOrderByPrsScoreDesc().stream()
-                .filter(r -> r.getUser().getSkills() != null && r.getUser().getSkills().contains(skill))
-                .collect(Collectors.toList());
     }
 }

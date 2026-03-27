@@ -12,6 +12,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class AuthenticationService {
@@ -59,6 +61,17 @@ public class AuthenticationService {
                 .refreshToken(refreshToken)
                 .user(mapToUserDto(user))
                 .build();
+    }
+
+    public User updateProfile(User user, User profileRequest) {
+        user.setFullName(profileRequest.getFullName());
+        user.setCollege(profileRequest.getCollege());
+        user.setSkills(profileRequest.getSkills());
+        return repository.save(user);
+    }
+
+    public List<User> getAllUsers() {
+        return repository.findAll();
     }
 
     private AuthenticationResponse.UserDto mapToUserDto(User user) {

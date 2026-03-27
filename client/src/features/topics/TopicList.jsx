@@ -83,15 +83,25 @@ const TopicList = () => {
 
   const [updating, setUpdating] = useState(null); // ID of topic being updated
 
-  const handleStatusUpdate = async (topicId, currentStatus) => {
-    const newCompleted = currentStatus === 'Mastered' ? 0 : 1; 
-    setUpdating(topicId);
+  const handleStatusUpdate = async (topic, currentStatus) => {
+    const isMastered = currentStatus === 'Mastered';
+    const newCompleted = isMastered ? 0 : 1; 
+    setUpdating(topic.id);
     try {
-      await api.put(`/topics/${topicId}/progress`, newCompleted);
-      setTopics(prev => prev.map(t => t.id === topicId ? { 
+      const response = await api.post('/topics/update', {
+        name: topic.name,
+        category: topic.category,
+        subCategory: topic.subCategory,
+        totalSubtopics: topic.totalSubtopics,
+        completedSubtopics: newCompleted
+      });
+      
+      const updatedTopic = response.data;
+      setTopics(prev => prev.map(t => t.name === topic.name ? { 
         ...t, 
-        completedSubtopics: newCompleted, 
-        completionPercentage: (newCompleted / (t.totalSubtopics || 1)) * 100 
+        id: updatedTopic.id,
+        completedSubtopics: updatedTopic.completedSubtopics, 
+        completionPercentage: updatedTopic.completionPercentage 
       } : t));
     } catch (err) {
       console.error("Failed to update status", err);
@@ -172,10 +182,11 @@ const TopicList = () => {
                   {category.subCats[subCat].map(topic => {
                     const status = getStatus(topic);
                     const isMastered = status === 'Mastered';
+                    const isUpdating = updating === topic.id;
                     
                     return (
                       <div 
-                        key={topic.id}
+                        key={topic.name}
                         className="flex items-center justify-between p-4 rounded-xl bg-slate-800/50 border border-slate-700/50 group hover:border-primary/30 transition-all"
                       >
                         <div className="flex items-center gap-4">
@@ -190,10 +201,11 @@ const TopicList = () => {
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => handleStatusUpdate(topic.id, status)}
+                          onClick={() => handleStatusUpdate(topic, status)}
+                          disabled={isUpdating}
                           className={isMastered ? 'text-green-400' : 'text-slate-500'}
                         >
-                          {isMastered ? 'Mastered' : 'Mark Done'}
+                          {isUpdating ? '...' : (isMastered ? 'Mastered' : 'Mark Done')}
                         </Button>
                       </div>
                     );

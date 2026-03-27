@@ -35,4 +35,19 @@ api.interceptors.request.use(
   }
 );
 
+// Response interceptor for handling 401/403 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Clear storage and redirect to login if unauthorized
+      localStorage.removeItem("userInfo");
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
+        window.location.href = '/login?expired=true';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

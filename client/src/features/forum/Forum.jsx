@@ -83,7 +83,7 @@ const Forum = () => {
         <div className="lg:col-span-2 space-y-6">
           {posts.map((post, i) => (
             <motion.div
-              key={post._id}
+              key={post.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
@@ -92,12 +92,12 @@ const Forum = () => {
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-white font-bold border border-slate-700">
-                      {post.authorId?.username?.[0].toUpperCase()}
+                      {(post.author?.fullName || post.author?.username || post.authorId?.username || 'U')[0].toUpperCase()}
                     </div>
                     <div>
                       <h4 className="text-white font-bold group-hover:text-primary transition-colors">{post.title}</h4>
                       <p className="text-xs text-slate-500">
-                        Posted by <span className="text-slate-400 font-medium">{post.authorId?.username}</span> • {new Date(post.createdAt).toLocaleDateString()}
+                        Posted by <span className="text-slate-400 font-medium">{post.author?.fullName || post.author?.username || post.authorId?.username || 'Anonymous'}</span> • {new Date(post.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
@@ -112,11 +112,11 @@ const Forum = () => {
 
                 <div className="flex items-center gap-6 border-t border-slate-800 pt-4">
                   <button 
-                    onClick={() => handleUpvote(post._id)}
+                    onClick={() => handleUpvote(post.id)}
                     className="flex items-center gap-2 text-slate-500 hover:text-primary transition-colors text-sm"
                   >
                     <ThumbsUp size={16} />
-                    {post.upvotes?.length || 0}
+                    {post.upvotes || 0}
                   </button>
                   <button className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors text-sm">
                     <MessageCircle size={16} />

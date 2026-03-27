@@ -76,28 +76,10 @@ const Dashboard = () => {
     );
   }
 
-  // Mock data for UI demo if API returns empty/error or while loading
-  const mockData = {
-    difficultyCounts: [
-      { _id: 'Easy', count: 12 },
-      { _id: 'Medium', count: 8 },
-      { _id: 'Hard', count: 3 }
-    ],
-    skillsData: [
-      { subject: 'DSA', A: 120, fullMark: 150 },
-      { subject: 'OS', A: 98, fullMark: 150 },
-      { subject: 'DBMS', A: 86, fullMark: 150 },
-      { subject: 'Networks', A: 99, fullMark: 150 },
-      { subject: 'System Design', A: 85, fullMark: 150 },
-      { subject: 'Web Dev', A: 65, fullMark: 150 },
-    ],
-    recommendation: "Focus on Graph Algorithms and System Design. Your OS concepts are strong, but practice more Hard level DP problems to reach the 90% readiness threshold."
-  };
-
-  const chartData = stats?.difficultyCounts?.length ? stats.difficultyCounts.map(d => ({ name: d._id, value: d.count })) : mockData.difficultyCounts.map(d => ({ name: d._id, value: d.count }));
-  const skillsData = stats?.skillsData || mockData.skillsData;
+  const chartData = stats?.difficultyCounts?.length ? stats.difficultyCounts.map(d => ({ name: d._id, value: d.count })) : [];
+  const skillsData = stats?.skillsData || [];
   const recentActivity = stats?.activity || [];
-  const recommendation = stats?.recommendation || mockData.recommendation;
+  const recommendation = stats?.recommendation || "Complete your first task to see AI recommendations.";
 
   return (
     <div className="space-y-8">
@@ -111,8 +93,8 @@ const Dashboard = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Total Solved" value={stats?.totalSolved || 0} icon={<FiCode />} trend="Real-time" color="text-blue-500" />
-        <StatCard title="Placement Readiness" value={prsData ? `${prsData.prsScore}%` : '0%'} icon={<FiTrendingUp />} trend="Target: 90%+" color="text-emerald-500" />
-        <StatCard title="Global Rank" value={prsData ? `#${prsData.globalRank}` : 'N/A'} icon={<FiActivity />} trend="Update: Weekly" color="text-primary" />
+        <StatCard title="Placement Readiness" value={prsData?.prsScore ? `${prsData.prsScore}%` : '0%'} icon={<FiTrendingUp />} trend="Target: 90%+" color="text-emerald-500" />
+        <StatCard title="Global Rank" value={prsData?.globalRank ? `#${prsData.globalRank}` : 'N/A'} icon={<FiActivity />} trend="Update: Weekly" color="text-primary" />
         <StatCard title="Course Completion" value={stats?.skillsData?.length ? `${Math.round(stats.skillsData.reduce((acc, curr) => acc + curr.A, 0) / stats.skillsData.length)}%` : '0%'} icon={<FiCheckCircle />} trend="Target: 100%" color="text-accent" />
       </div>
 
@@ -191,8 +173,8 @@ const Dashboard = () => {
                 </RadarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-500 text-sm italic">
-                No skill data available
+              <div className="flex items-center justify-center h-full text-slate-500 text-sm italic border border-dashed border-slate-800 rounded-xl">
+                No skill analysis data available yet.
               </div>
             )}
           </div>
@@ -216,8 +198,8 @@ const Dashboard = () => {
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-slate-500 text-sm italic">
-                No problem data available
+              <div className="flex items-center justify-center h-full text-slate-500 text-sm italic border border-dashed border-slate-800 rounded-xl">
+                No problem solving data available yet.
               </div>
             )}
           </div>

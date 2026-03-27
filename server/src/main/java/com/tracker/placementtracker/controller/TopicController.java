@@ -33,6 +33,11 @@ public class TopicController {
         return ResponseEntity.ok(topicService.updateProgress(id, completedSubtopics));
     }
 
+    @PostMapping("/update")
+    public ResponseEntity<Topic> updateTopicStatus(@AuthenticationPrincipal User user, @RequestBody Topic topicRequest) {
+        return ResponseEntity.ok(topicService.updateTopicStatus(user, topicRequest));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTopic(@PathVariable Long id) {
         topicService.deleteTopic(id);

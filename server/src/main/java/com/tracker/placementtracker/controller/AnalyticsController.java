@@ -69,6 +69,19 @@ public class AnalyticsController {
         
         response.put("skillsData", skillsData);
         
+        // Add recent activity
+        List<Map<String, Object>> activity = stats.stream()
+                .limit(5)
+                .map(s -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("type", "problem");
+                    map.put("title", s.getTitle());
+                    map.put("timestamp", s.getSolvedAt());
+                    return map;
+                })
+                .collect(Collectors.toList());
+        response.put("activity", activity);
+        
         // ML Insights (Weak Topics & Suggestions)
         Map<String, Object> mlRequest = new HashMap<>();
         mlRequest.put("stats", Map.of("weak_topics", getWeakTopics(user)));

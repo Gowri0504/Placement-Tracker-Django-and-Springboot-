@@ -22,7 +22,7 @@ const Badge = ({ name, icon, date, description }) => (
 );
 
 const Profile = () => {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
   const [profile, setProfile] = useState({
     fullName: user?.fullName || '',
     college: user?.college || '',
@@ -36,7 +36,10 @@ const Profile = () => {
   const handleSave = async () => {
     try {
       const skillsArray = profile.skills.split(',').map(s => s.trim()).filter(s => s !== '');
-      await api.put('/user/profile', { ...profile, skills: skillsArray });
+      const { data } = await api.put('/auth/profile', { ...profile, skills: skillsArray });
+      setUser(prev => ({ ...prev, ...data }));
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      localStorage.setItem('userInfo', JSON.stringify({ ...userInfo, user: { ...userInfo.user, ...data } }));
       setEditing(false);
     } catch (err) {
       console.error(err);
@@ -192,19 +195,19 @@ const Profile = () => {
             </div>
             
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {user?.gamification?.badges?.length > 0 ? (
-                user.gamification.badges.map((badge, idx) => (
-                  <Badge 
-                    key={idx}
-                    name={badge.name}
-                    icon={badge.icon || '🏆'}
-                    date={badge.earnedDate}
-                    description={badge.description}
-                  />
-                ))
-              ) : (
-                <div className="col-span-full py-8 text-center bg-slate-900/50 rounded-xl border border-dashed border-slate-700">
-                  <p className="text-slate-500">No badges earned yet. Keep practicing!</p>
+              {user?.profileScore >= 100 && (
+                <Badge name="Beginner" icon="🌱" date={new Date().toLocaleDateString()} description="Reached 100 PRS points!" />
+              )}
+              {user?.profileScore >= 300 && (
+                <Badge name="Intermediate" icon="🔥" date={new Date().toLocaleDateString()} description="Reached 300 PRS points!" />
+              )}
+              {user?.profileScore >= 700 && (
+                <Badge name="Advanced" icon="🚀" date={new Date().toLocaleDateString()} description="Reached 700 PRS points!" />
+              )}
+              
+              {(!user?.profileScore || user?.profileScore < 100) && (
+                <div className="col-span-full py-8 text-center bg-slate-900/50 rounded-xl border border-dashed border-slate-800">
+                  <p className="text-slate-500">No badges earned yet. Reach 100 points to unlock your first badge!</p>
                 </div>
               )}
             </div>

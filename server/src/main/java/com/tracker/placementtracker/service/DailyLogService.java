@@ -24,8 +24,11 @@ public class DailyLogService {
         return saved;
     }
 
-    public void deleteLog(Long id) {
+    public void deleteLog(Long id, User user) {
         DailyLog log = dailyLogRepository.findById(id).orElseThrow();
+        if (!log.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized to delete this log");
+        }
         dailyLogRepository.deleteById(id);
         rankingService.updateUserRanking(log.getUser());
     }
