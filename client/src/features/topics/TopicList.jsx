@@ -10,33 +10,61 @@ const TopicList = () => {
   const [filter, setFilter] = useState('All');
 
   const SYLLABUS = [
-    { id: 'dsa-1', name: 'Time & Space Complexity', category: 'DSA', subCategory: 'Basics', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dsa-2', name: 'Recursion & Backtracking', category: 'DSA', subCategory: 'Basics', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dsa-3', name: 'Bit Manipulation', category: 'DSA', subCategory: 'Basics', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dsa-4', name: 'Arrays (Sliding Window, Prefix Sum)', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dsa-5', name: 'Strings (KMP, Rabin-Karp)', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dsa-6', name: 'Linked List (Cycle Detection)', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dsa-7', name: 'Stack & Queue', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dsa-8', name: 'Trees (BST, AVL, Heap)', category: 'DSA', subCategory: 'Non-Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dsa-9', name: 'Graphs (BFS, DFS, Topological)', category: 'DSA', subCategory: 'Non-Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dsa-10', name: 'Dynamic Programming', category: 'DSA', subCategory: 'Algorithms', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'os-1', name: 'Process Management & Threads', category: 'Core Subjects', subCategory: 'Operating Systems', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'os-2', name: 'CPU Scheduling Algorithms', category: 'Core Subjects', subCategory: 'Operating Systems', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'os-3', name: 'Deadlocks (Banker\'s Algorithm)', category: 'Core Subjects', subCategory: 'Operating Systems', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'os-4', name: 'Memory Management (Paging, LRU)', category: 'Core Subjects', subCategory: 'Operating Systems', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dbms-1', name: 'SQL (Joins, Indexing, Queries)', category: 'Core Subjects', subCategory: 'DBMS', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dbms-2', name: 'Normalization (1NF to BCNF)', category: 'Core Subjects', subCategory: 'DBMS', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'dbms-3', name: 'ACID Properties & Transactions', category: 'Core Subjects', subCategory: 'DBMS', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'cn-1', name: 'OSI Model (7 Layers)', category: 'Core Subjects', subCategory: 'Computer Networks', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'cn-2', name: 'TCP vs UDP & Congestion Control', category: 'Core Subjects', subCategory: 'Computer Networks', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'cn-3', name: 'IP Addressing & HTTP/HTTPS', category: 'Core Subjects', subCategory: 'Computer Networks', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'oop-1', name: 'Classes, Objects, & Inheritance', category: 'Core Subjects', subCategory: 'OOP', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'oop-2', name: 'Polymorphism & Abstraction', category: 'Core Subjects', subCategory: 'OOP', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'oop-3', name: 'SOLID Principles & Design Patterns', category: 'Core Subjects', subCategory: 'OOP', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'sd-1', name: 'Scalability & Load Balancing', category: 'System Design', subCategory: 'Basics', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'sd-2', name: 'Microservices & Message Queues', category: 'System Design', subCategory: 'Advanced', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'apt-1', name: 'Quantitative Aptitude', category: 'Aptitude', subCategory: 'Math', totalSubtopics: 1, completedSubtopics: 0 },
-    { id: 'apt-2', name: 'Logical Reasoning & Puzzles', category: 'Aptitude', subCategory: 'Reasoning', totalSubtopics: 1, completedSubtopics: 0 }
+    // 🔹 DSA (Fully Deep)
+    { id: 'dsa-1', name: 'Arrays & Strings (Sliding Window, Prefix Sum)', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-2', name: 'Linked List (Cycle Detection, Fast/Slow)', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-3', name: 'Stack, Queue & Deque', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-4', name: 'Hashing (Map, Set, Collisions)', category: 'DSA', subCategory: 'Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-5', name: 'Trees (Binary Tree, BST, AVL)', category: 'DSA', subCategory: 'Non-Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-6', name: 'Heap (Min/Max Heap, Priority Queue)', category: 'DSA', subCategory: 'Non-Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-7', name: 'Trie (Prefix Tree)', category: 'DSA', subCategory: 'Non-Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-8', name: 'Graphs (BFS/DFS, Topological Sort)', category: 'DSA', subCategory: 'Non-Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-9', name: 'Advanced Graphs (Dijkstra, Bellman-Ford, MST)', category: 'DSA', subCategory: 'Non-Linear DS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-10', name: 'Recursion & Backtracking', category: 'DSA', subCategory: 'Algorithms', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-11', name: 'Dynamic Programming (Pattern-based)', category: 'DSA', subCategory: 'Algorithms', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-12', name: 'Greedy Algorithms', category: 'DSA', subCategory: 'Algorithms', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-13', name: 'Bit Manipulation', category: 'DSA', subCategory: 'Basics', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dsa-14', name: 'Two Pointers & Binary Search', category: 'DSA', subCategory: 'Algorithms', totalSubtopics: 1, completedSubtopics: 0 },
+
+    // 🔹 Core Subjects (Advanced Level)
+    { id: 'os-1', name: 'Process vs Thread & CPU Scheduling', category: 'Core Subjects', subCategory: 'OS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'os-2', name: 'Deadlock (Detection, Prevention)', category: 'Core Subjects', subCategory: 'OS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'os-3', name: 'Memory Management (Paging, Virtual Memory)', category: 'Core Subjects', subCategory: 'OS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'os-4', name: 'Synchronization (Semaphores, Mutex)', category: 'Core Subjects', subCategory: 'OS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dbms-1', name: 'ER Modeling & Normalization (1NF-BCNF)', category: 'Core Subjects', subCategory: 'DBMS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dbms-2', name: 'Indexing (B+ Trees) & SQL Optimization', category: 'Core Subjects', subCategory: 'DBMS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'dbms-3', name: 'Transactions, ACID & Concurrency Control', category: 'Core Subjects', subCategory: 'DBMS', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'cn-1', name: 'OSI vs TCP/IP & HTTP/HTTPS', category: 'Core Subjects', subCategory: 'Networking', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'cn-2', name: 'TCP vs UDP & Congestion Control', category: 'Core Subjects', subCategory: 'Networking', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'cn-3', name: 'DNS, SSL/TLS & REST APIs', category: 'Core Subjects', subCategory: 'Networking', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'oop-1', name: 'SOLID Principles', category: 'Core Subjects', subCategory: 'OOP', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'oop-2', name: 'Design Patterns (Singleton, Factory, Observer)', category: 'Core Subjects', subCategory: 'OOP', totalSubtopics: 1, completedSubtopics: 0 },
+
+    // 🔹 Programming Languages
+    { id: 'lang-1', name: 'C / C++ Mastery', category: 'Languages', subCategory: 'Backend', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'lang-2', name: 'Java (JVM, Streams, Multithreading)', category: 'Languages', subCategory: 'Backend', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'lang-3', name: 'Python (Data Science, Scripting)', category: 'Languages', subCategory: 'Backend', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'lang-4', name: 'JavaScript (ES6+, Async/Await)', category: 'Languages', subCategory: 'Frontend', totalSubtopics: 1, completedSubtopics: 0 },
+
+    // 🔹 Web Development
+    { id: 'web-1', name: 'Frontend (React, Flexbox, ARIA)', category: 'Web Dev', subCategory: 'Frontend', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'web-2', name: 'Backend Design (JWT, OAuth, API Versioning)', category: 'Web Dev', subCategory: 'Backend', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'web-3', name: 'Databases (MongoDB, SQL, Redis)', category: 'Web Dev', subCategory: 'Database', totalSubtopics: 1, completedSubtopics: 0 },
+
+    // 🔹 System Design
+    { id: 'sd-1', name: 'Scalability, Load Balancing & Caching', category: 'System Design', subCategory: 'HLD', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'sd-2', name: 'Database Sharding & CAP Theorem', category: 'System Design', subCategory: 'HLD', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'sd-3', name: 'Case Studies (URL Shortener, Payment System)', category: 'System Design', subCategory: 'HLD', totalSubtopics: 1, completedSubtopics: 0 },
+
+    // 🔹 DevOps & Tools
+    { id: 'devops-1', name: 'Git (Branching, Strategies)', category: 'DevOps', subCategory: 'Tools', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'devops-2', name: 'Docker & CI/CD Fundamentals', category: 'DevOps', subCategory: 'Automation', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'devops-3', name: 'Linux Commands & Cloud (AWS/GCP)', category: 'DevOps', subCategory: 'Infrastructure', totalSubtopics: 1, completedSubtopics: 0 },
+
+    // 🔹 Interview & Placement
+    { id: 'prep-1', name: 'HR & Behavioral Questions (STAR)', category: 'Placement Prep', subCategory: 'HR', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'prep-2', name: 'Resume & Company-specific Prep', category: 'Placement Prep', subCategory: 'Technical', totalSubtopics: 1, completedSubtopics: 0 },
+    { id: 'prep-3', name: 'Mock Interviews & GD Topics', category: 'Placement Prep', subCategory: 'Practice', totalSubtopics: 1, completedSubtopics: 0 }
   ];
 
   useEffect(() => {
@@ -86,7 +114,7 @@ const TopicList = () => {
   const handleStatusUpdate = async (topic, currentStatus) => {
     const isMastered = currentStatus === 'Mastered';
     const newCompleted = isMastered ? 0 : 1; 
-    setUpdating(topic.id);
+    setUpdating(topic.id || topic.name);
     try {
       const response = await api.post('/topics/update', {
         name: topic.name,
@@ -182,7 +210,7 @@ const TopicList = () => {
                   {category.subCats[subCat].map(topic => {
                     const status = getStatus(topic);
                     const isMastered = status === 'Mastered';
-                    const isUpdating = updating === topic.id;
+                    const isUpdating = updating === (topic.id || topic.name);
                     
                     return (
                       <div 

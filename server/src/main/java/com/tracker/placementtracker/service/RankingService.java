@@ -84,32 +84,65 @@ public class RankingService {
                 .orElse(Ranking.builder().user(user).build());
         
         ranking.setPrsScore(prsScore);
-        ranking.setBreakdown(Map.of(
-            "accuracy", accuracy * 100,
-            "difficulty", difficulty * 100,
-            "consistency", consistency * 100,
-            "timeEfficiency", time * 100,
-            "coreCoverage", coverage * 100
-        ));
+        
+        Map<String, Double> breakdown = new java.util.HashMap<>();
+        breakdown.put("accuracy", accuracy * 100);
+        breakdown.put("difficulty", difficulty * 100);
+        breakdown.put("consistency", consistency * 100);
+        breakdown.put("timeEfficiency", time * 100);
+        breakdown.put("coreCoverage", coverage * 100);
+        
+        ranking.setBreakdown(breakdown);
         Ranking saved = rankingRepository.save(ranking);
         
         // Update user's profile score
         user.setProfileScore(prsScore);
         userRepository.save(user);
         
-        saved.setBreakdown(ranking.getBreakdown()); // Restore transient field after save
+        saved.setBreakdown(breakdown); // Restore transient field after save
+        
+        // Gamification: Update XP based on PRS
+        updateUserXP(user, prsScore);
+        
         return saved;
     }
 
+    private void updateUserXP(User user, double prsScore) {
+        // Simple XP logic: PRS * 10 + bonus for high scores
+        long newXp = (long) (prsScore * 10);
+        if (prsScore > 80) newXp += 500;
+        if (prsScore > 90) newXp += 1000;
+        
+        user.setXp(newXp);
+        
+        // Level logic: Level = (XP / 1000) + 1
+        int newLevel = (int) (newXp / 1000) + 1;
+        user.setLevel(newLevel);
+        
+        // Badge logic
+        List<String> badges = user.getBadges();
+        if (badges == null) badges = new java.util.ArrayList<>();
+        
+        if (prsScore > 70 && !badges.contains("SQL Ninja")) badges.add("SQL Ninja");
+        if (prsScore > 85 && !badges.contains("Graph Master")) badges.add("Graph Master");
+        
+        user.setBadges(badges);
+        userRepository.save(user);
+    }
+
     private double calculateAccuracy(List<ProblemStat> stats) {
-        if (stats.isEmpty()) return 0.0;
-        long correct = stats.stream().filter(ProblemStat::getIsCorrect).count();
+        if (stats == null || stats.isEmpty()) return 0.0;
+        long correct = stats.stream()
+                .filter(s -> s != null && Boolean.TRUE.equals(s.getIsCorrect()))
+                .count();
         return (double) correct / stats.size();
     }
 
     private double calculateAverageDifficulty(List<ProblemStat> stats) {
-        if (stats.isEmpty()) return 0.0;
-        double sum = stats.stream().mapToDouble(s -> {
+        if (stats == null || stats.isEmpty()) return 0.0;
+        double sum = stats.stream()
+                .filter(s -> s != null && s.getDifficulty() != null)
+                .mapToDouble(s -> {
             switch (s.getDifficulty().toUpperCase()) {
                 case "HARD": return 1.0;
                 case "MEDIUM": return 0.6;
@@ -121,19 +154,22 @@ public class RankingService {
     }
 
     private double calculateConsistency(List<DailyLog> logs) {
-        if (logs.isEmpty()) return 0.0;
+        if (logs == null || logs.isEmpty()) return 0.0;
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         long activeDays = logs.stream()
-                .filter(l -> l.getCreatedAt().isAfter(thirtyDaysAgo))
+                .filter(l -> l != null && l.getCreatedAt() != null && l.getCreatedAt().isAfter(thirtyDaysAgo))
                 .map(l -> l.getCreatedAt().toLocalDate())
                 .distinct()
                 .count();
-        return Math.min(1.0, (double) activeDays / 20.0); // 20 days/month as max consistency
+        return Math.min(1.0, (double) activeDays / 20.0); 
     }
 
     private double calculateTimeEfficiency(List<ProblemStat> stats) {
-        if (stats.isEmpty()) return 0.0;
-        double avgTime = stats.stream().mapToInt(ProblemStat::getTimeTakenMinutes).average().orElse(0.0);
+        if (stats == null || stats.isEmpty()) return 0.0;
+        double avgTime = stats.stream()
+                .filter(s -> s != null)
+                .mapToInt(s -> s.getTimeTakenMinutes() != null ? s.getTimeTakenMinutes() : 45)
+                .average().orElse(0.0);
         // Normalized time efficiency: assume 45 mins is "standard", 15 mins is "excellent"
         if (avgTime <= 15) return 1.0;
         if (avgTime >= 60) return 0.2;
@@ -141,8 +177,10 @@ public class RankingService {
     }
 
     private double calculateCoverage(List<Topic> topics) {
-        if (topics.isEmpty()) return 0.0;
-        double totalCompletion = topics.stream().mapToDouble(Topic::getCompletionPercentage).sum();
+        if (topics == null || topics.isEmpty()) return 0.0;
+        double totalCompletion = topics.stream()
+                .filter(t -> t != null && t.getCompletionPercentage() != null)
+                .mapToDouble(Topic::getCompletionPercentage).sum();
         return totalCompletion / (topics.size() * 100.0);
     }
 }

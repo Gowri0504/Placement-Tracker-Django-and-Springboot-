@@ -25,6 +25,10 @@ public class DailyLog {
     @Column(nullable = false)
     private String topic;
 
+    private String interviewRoundName; // Aptitude, Coding, Technical, HR
+    private String optionalTestTopic; // Mock Test, Company Specific, etc.
+    private java.time.LocalDate logDate; // The date this log is for
+
     @Column(nullable = false)
     private Integer timeSpentMinutes;
 

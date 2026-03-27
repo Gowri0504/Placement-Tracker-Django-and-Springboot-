@@ -6,49 +6,53 @@ import { motion } from 'framer-motion';
 const InsightsCard = ({ prsData, stats }) => {
   const getInsights = () => {
     const insights = [];
-    if (!prsData) return [];
+    if (!prsData || !prsData.breakdown) return [];
 
-    const { breakdown, prs } = prsData;
-    if (!breakdown) return [];
+    const { breakdown } = prsData;
 
-    // Consistency Insight
-    if (breakdown.consistency < 60) {
+    // 🧠 AI-Style Insights (Smart Suggestion Engine)
+    
+    // 1. Time Efficiency vs Accuracy
+    if (breakdown.accuracy > 80 && breakdown.timeEfficiency < 50) {
       insights.push({
         type: 'improvement',
-        title: 'Consistency is Low',
-        desc: 'You missed a few days of practice recently. Aim for a 5-day streak to boost your readiness by 10%.',
-        icon: <FiAlertCircle className="text-rose-400" />,
-        color: 'border-rose-500/20 bg-rose-500/5'
-      });
-    } else {
-      insights.push({
-        type: 'success',
-        title: 'Great Consistency!',
-        desc: 'You are maintaining a steady learning pace. Keep it up to solidify your muscle memory.',
-        icon: <FiCheckCircle className="text-emerald-400" />,
-        color: 'border-emerald-500/20 bg-emerald-500/5'
-      });
-    }
-
-    // Accuracy vs Difficulty Insight
-    if (breakdown.accuracy < 70 && breakdown.difficulty > 50) {
-      insights.push({
-        type: 'improvement',
-        title: 'Focus on Easy/Medium',
-        desc: 'Your accuracy is dipping on harder problems. Try solving 5-10 Easy problems to regain confidence.',
+        title: 'Speed Up Your Logic',
+        desc: 'You solve problems accurately but take 40% more time than average. Focus on BFS/DFS pattern speed.',
         icon: <FiTarget className="text-amber-400" />,
         color: 'border-amber-500/20 bg-amber-500/5'
       });
     }
 
-    // Core Coverage Insight
-    if (breakdown.coreCoverage < 40) {
+    // 2. Weak Topic Decay Detection
+    if (breakdown.coreCoverage > 60 && breakdown.consistency < 40) {
       insights.push({
-        type: 'priority',
-        title: 'Core Subjects Needed',
-        desc: 'Your OS and DBMS coverage is low. These are critical for technical interviews.',
+        type: 'alert',
+        title: 'Revision Needed',
+        desc: 'Your SQL joins accuracy dropped after 10 days of inactivity — schedule a quick revision session.',
+        icon: <FiAlertCircle className="text-rose-400" />,
+        color: 'border-rose-500/20 bg-rose-500/5'
+      });
+    }
+
+    // 3. Pattern Mastery Suggestion
+    if (breakdown.difficulty < 40) {
+      insights.push({
+        type: 'suggestion',
+        title: 'Level Up Challenge',
+        desc: 'You are comfortable with Easy problems. It is time to tackle "Medium" DP – Knapsack patterns.',
         icon: <FiTrendingUp className="text-blue-400" />,
         color: 'border-blue-500/20 bg-blue-500/5'
+      });
+    }
+
+    // 4. Mock Interview Recommendation
+    if (breakdown.accuracy > 70 && breakdown.coreCoverage > 70) {
+      insights.push({
+        type: 'success',
+        title: 'Interview Ready?',
+        desc: 'Your fundamentals are strong. A mock interview is highly recommended this week to test your soft skills.',
+        icon: <FiCheckCircle className="text-emerald-400" />,
+        color: 'border-emerald-500/20 bg-emerald-500/5'
       });
     }
 
@@ -56,6 +60,18 @@ const InsightsCard = ({ prsData, stats }) => {
   };
 
   const insights = getInsights();
+
+  // Smart Suggestions based on data
+  const getSmartSuggestion = () => {
+    if (!prsData || !prsData.breakdown) return "Complete your first task to see AI recommendations.";
+    const { breakdown } = prsData;
+    
+    if (breakdown.coreCoverage < 50) return "Master 'OS: Process Management' today to boost your core score.";
+    if (breakdown.accuracy < 60) return "Solve 5 'Easy' Arrays problems to improve your base accuracy.";
+    if (breakdown.difficulty < 50) return "Try 3 'Medium' Trees problems today to challenge yourself.";
+    
+    return "Your progress is balanced. Schedule a mock interview or refine your resume.";
+  };
 
   if (insights.length === 0) return null;
 
@@ -86,7 +102,7 @@ const InsightsCard = ({ prsData, stats }) => {
       <div className="mt-8 p-4 rounded-xl bg-primary/10 border border-primary/20">
         <p className="text-primary font-bold text-xs uppercase tracking-wider mb-2">Next Step</p>
         <p className="text-white text-sm">
-          Solve 3 <span className="font-bold">Linked List</span> problems today to reach your weekly goal.
+          {getSmartSuggestion()}
         </p>
       </div>
     </Card>

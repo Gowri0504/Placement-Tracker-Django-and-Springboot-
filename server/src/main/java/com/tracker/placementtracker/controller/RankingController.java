@@ -19,8 +19,17 @@ public class RankingController {
 
     @GetMapping("/leaderboard")
     public ResponseEntity<List<Ranking>> getLeaderboard() {
-        rankingService.updateAllRankings(); // Force update for demo accuracy
-        return ResponseEntity.ok(rankingService.getLeaderboard());
+        try {
+            List<Ranking> leaderboard = rankingService.getLeaderboard();
+            if (leaderboard.isEmpty()) {
+                // If empty, we can try to update once in the background or just return empty
+                // For now, let's just return what we have to avoid 500s
+                return ResponseEntity.ok(leaderboard);
+            }
+            return ResponseEntity.ok(leaderboard);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @GetMapping("/leaderboard/college/{college}")

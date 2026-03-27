@@ -7,7 +7,8 @@ import confetti from 'canvas-confetti';
 export default function RoundDetails({ date, roundId, roundConfig, onClose, onUpdate, currentLog, allTopics }) {
   const [formData, setFormData] = useState({
     completed: false,
-    topics: []
+    topics: [],
+    optionalTestTopic: ''
   });
   const [isClosing, setIsClosing] = useState(false);
   const contentRef = useRef(null);
@@ -19,15 +20,19 @@ export default function RoundDetails({ date, roundId, roundConfig, onClose, onUp
   // Group topics by section
   const sections = {};
   roundTopics.forEach(t => {
-    if (!sections[t.section]) sections[t.section] = [];
-    sections[t.section].push(t);
+    const section = t.section || t.category || 'General';
+    if (!sections[section]) sections[section] = [];
+    sections[section].push(t);
   });
 
   useEffect(() => {
     if (currentLog && currentLog.rounds && currentLog.rounds[roundId]) {
-      setFormData(currentLog.rounds[roundId]);
+      setFormData({
+        ...currentLog.rounds[roundId],
+        optionalTestTopic: currentLog.rounds[roundId].optionalTestTopic || ''
+      });
     } else {
-      setFormData({ completed: false, topics: [] });
+      setFormData({ completed: false, topics: [], optionalTestTopic: '' });
     }
   }, [currentLog, roundId]);
 
@@ -38,9 +43,9 @@ export default function RoundDetails({ date, roundId, roundConfig, onClose, onUp
       newTopics = formData.topics.filter(t => t.name !== topic.name);
     } else {
       newTopics = [...formData.topics, { 
-        topicId: topic._id,
+        topicId: topic.id || topic._id,
         name: topic.name, 
-        category: topic.section,
+        category: topic.section || topic.category,
         timeSpent: 0,
         difficulty: 'Medium'
       }];
@@ -72,7 +77,23 @@ export default function RoundDetails({ date, roundId, roundConfig, onClose, onUp
     };
 
     try {
-      const res = await api.post('/api/daylog', updatedLog);
+      // Save for current session logic
+      const res = await api.post('/daylog', updatedLog);
+      
+      // Also save to daily_logs table for row-wise historical tracking
+      const dailyLogPromises = formData.topics.map(topic => {
+        return api.post('/logs', {
+          topic: topic.name,
+          interviewRoundName: roundConfig.label,
+          optionalTestTopic: formData.optionalTestTopic,
+          timeSpentMinutes: topic.timeSpent || 30,
+          difficulty: topic.difficulty || 'Medium',
+          logDate: date
+        });
+      });
+      
+      await Promise.all(dailyLogPromises);
+
       onUpdate(res.data);
       handleClose();
     } catch (err) {
@@ -176,6 +197,22 @@ export default function RoundDetails({ date, roundId, roundConfig, onClose, onUp
               {formData.completed && <FaTrophy className="text-white/20 text-6xl absolute right-4 -bottom-4 rotate-12" />}
             </div>
 
+            {/* Optional Test Topic / Company Specific */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <FaLightbulb className="text-amber-500" />
+                <h3 className="text-lg font-bold text-slate-800">Extra Focus (Optional)</h3>
+              </div>
+              <input
+                type="text"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-700 outline-none focus:border-indigo-500 transition-colors"
+                placeholder="e.g. Mock Test, Amazon Specific, Puzzles..."
+                value={formData.optionalTestTopic}
+                onChange={e => setFormData({ ...formData, optionalTestTopic: e.target.value })}
+              />
+              <p className="text-xs text-slate-400">Add any specific mock tests or company-specific preparation you did today.</p>
+            </div>
+
             {/* Topics Grid */}
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -203,7 +240,7 @@ export default function RoundDetails({ date, roundId, roundConfig, onClose, onUp
                         const isChecked = formData.topics.some(t => t.name === topic.name);
                         return (
                           <div 
-                            key={topic._id} 
+                            key={topic.id || topic.name} 
                             onClick={() => toggleTopic(topic)}
                             className={clsx(
                               "relative group p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 overflow-hidden",

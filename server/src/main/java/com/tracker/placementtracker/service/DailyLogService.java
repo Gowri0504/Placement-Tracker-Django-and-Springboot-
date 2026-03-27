@@ -18,9 +18,21 @@ public class DailyLogService {
         return dailyLogRepository.findByUser(user);
     }
 
+    public List<DailyLog> getLogsByDate(User user, java.time.LocalDate date) {
+        return dailyLogRepository.findByUserAndLogDate(user, date);
+    }
+
     public DailyLog saveLog(DailyLog log) {
         DailyLog saved = dailyLogRepository.save(log);
         rankingService.updateUserRanking(log.getUser());
+        return saved;
+    }
+
+    public List<DailyLog> saveAll(List<DailyLog> logs) {
+        List<DailyLog> saved = dailyLogRepository.saveAll(logs);
+        if (!logs.isEmpty()) {
+            rankingService.updateUserRanking(logs.get(0).getUser());
+        }
         return saved;
     }
 

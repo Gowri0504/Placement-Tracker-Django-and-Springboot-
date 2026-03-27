@@ -13,7 +13,7 @@ export default function Home() {
 
   const fetchMotivation = async () => {
     try {
-      const res = await api.get('/api/motivation');
+      const res = await api.get('/motivation');
       setMotivation(res.data.quote);
     } catch (err) {
       console.error(err);
@@ -23,7 +23,7 @@ export default function Home() {
   const fetchTodayProgress = async () => {
     try {
       const todayStr = new Date().toISOString().split('T')[0];
-      const res = await api.get(`/api/daylog/${todayStr}`);
+      const res = await api.get(`/daylog/${todayStr}`);
       
       if (res.data && res.data.rounds) {
         let completedRounds = 0;

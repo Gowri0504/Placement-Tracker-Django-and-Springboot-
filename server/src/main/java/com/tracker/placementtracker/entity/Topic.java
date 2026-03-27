@@ -33,4 +33,11 @@ public class Topic {
     
     private Integer totalSubtopics = 0;
     private Integer completedSubtopics = 0;
+
+    // Advanced Metrics
+    private Double accuracy = 0.0;
+    private Integer avgTimePerProblem = 0; // in minutes
+    private Integer reattemptSuccessCount = 0;
+    private Double patternMasteryScore = 0.0;
+    private java.time.LocalDateTime lastRevisedAt;
 }

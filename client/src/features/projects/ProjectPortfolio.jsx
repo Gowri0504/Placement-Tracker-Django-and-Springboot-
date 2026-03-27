@@ -24,9 +24,10 @@ const ProjectPortfolio = () => {
   const fetchProjects = async () => {
     try {
       const res = await api.get('/projects');
-      setProjects(res.data);
+      setProjects(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error(err);
+      setProjects([]);
     }
   };
 
@@ -66,7 +67,7 @@ const ProjectPortfolio = () => {
     setFormData({
       title: project.title,
       description: project.description,
-      techStack: project.techStack.join(', '),
+      techStack: Array.isArray(project.techStack) ? project.techStack.join(', ') : '',
       githubLink: project.githubLink || '',
       liveLink: project.liveLink || '',
       confidenceScore: project.confidenceScore
@@ -216,7 +217,7 @@ const ProjectPortfolio = () => {
             <p className="text-slate-400 mt-3 line-clamp-2 text-sm leading-relaxed">{project.description}</p>
             
             <div className="flex flex-wrap gap-2 mt-4">
-              {project.techStack.map(tech => (
+              {Array.isArray(project.techStack) && project.techStack.map(tech => (
                 <span key={tech} className="px-2 py-0.5 rounded bg-slate-800/50 text-slate-400 text-[10px] font-bold uppercase tracking-wider border border-slate-800">
                   {tech}
                 </span>

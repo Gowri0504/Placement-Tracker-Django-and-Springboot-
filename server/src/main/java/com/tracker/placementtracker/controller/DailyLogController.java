@@ -22,10 +22,28 @@ public class DailyLogController {
         return ResponseEntity.ok(dailyLogService.getLogsByUser(user));
     }
 
+    @GetMapping("/date/{date}")
+    public ResponseEntity<List<DailyLog>> getLogsByDate(@AuthenticationPrincipal User user, @PathVariable String date) {
+        java.time.LocalDate logDate = java.time.LocalDate.parse(date);
+        return ResponseEntity.ok(dailyLogService.getLogsByDate(user, logDate));
+    }
+
     @PostMapping
     public ResponseEntity<DailyLog> createLog(@AuthenticationPrincipal User user, @RequestBody DailyLog log) {
         log.setUser(user);
+        if (log.getLogDate() == null) {
+            log.setLogDate(java.time.LocalDate.now());
+        }
         return ResponseEntity.ok(dailyLogService.saveLog(log));
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<List<DailyLog>> saveBatch(@AuthenticationPrincipal User user, @RequestBody List<DailyLog> logs) {
+        logs.forEach(log -> {
+            log.setUser(user);
+            if (log.getLogDate() == null) log.setLogDate(java.time.LocalDate.now());
+        });
+        return ResponseEntity.ok(dailyLogService.saveAll(logs));
     }
 
     @DeleteMapping("/{id}")

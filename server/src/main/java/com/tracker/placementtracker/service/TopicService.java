@@ -48,6 +48,16 @@ public class TopicService {
                         .build());
         
         topic.setCompletedSubtopics(topicRequest.getCompletedSubtopics());
+        
+        // Update advanced metrics if provided
+        if (topicRequest.getAccuracy() != null) topic.setAccuracy(topicRequest.getAccuracy());
+        if (topicRequest.getAvgTimePerProblem() != null) topic.setAvgTimePerProblem(topicRequest.getAvgTimePerProblem());
+        if (topicRequest.getPatternMasteryScore() != null) topic.setPatternMasteryScore(topicRequest.getPatternMasteryScore());
+        
+        if (topic.getCompletedSubtopics() > 0) {
+            topic.setLastRevisedAt(java.time.LocalDateTime.now());
+        }
+
         if (topic.getTotalSubtopics() > 0) {
             topic.setCompletionPercentage((double) topic.getCompletedSubtopics() / topic.getTotalSubtopics() * 100);
         }

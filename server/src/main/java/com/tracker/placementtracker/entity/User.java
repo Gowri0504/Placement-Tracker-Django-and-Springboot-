@@ -43,6 +43,13 @@ public class User implements UserDetails {
 
     private Double profileScore;
 
+    // Gamification
+    private Long xp = 0L;
+    private Integer level = 1;
+    
+    @ElementCollection
+    private List<String> badges;
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));

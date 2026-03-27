@@ -42,7 +42,7 @@ export default function Dashboard() {
 
   const fetchTopics = async () => {
     try {
-      const res = await api.get('/api/topics');
+      const res = await api.get('/topics');
       setTopics(res.data);
     } catch (err) {
       console.error(err);
@@ -51,7 +51,7 @@ export default function Dashboard() {
 
   const fetchAllLogs = async () => {
     try {
-      const res = await api.get('/api/daylogs');
+      const res = await api.get('/daylogs');
       setAllLogs(res.data);
     } catch (err) {
       console.error(err);
@@ -61,7 +61,7 @@ export default function Dashboard() {
   const fetchLogsForRange = async (rangeDates) => {
     try {
       const promises = rangeDates.map(date => 
-        api.get(`/api/daylog/${format(date, 'yyyy-MM-dd')}`)
+        api.get(`/daylog/${format(date, 'yyyy-MM-dd')}`)
       );
       const results = await Promise.all(promises);
       const newLogs = { ...logs };

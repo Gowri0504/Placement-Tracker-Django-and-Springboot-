@@ -42,7 +42,20 @@ public class InterviewController {
 
     @PostMapping("/start")
     public ResponseEntity<Object> startMockInterview(@AuthenticationPrincipal User user, @RequestBody Map<String, Object> request) {
-        Map<String, Object> mlResponse = (Map<String, Object>) mlService.startMockInterview(request);
+        // Prepare context for ML service to generate better questions
+        Map<String, Object> context = new java.util.HashMap<>(request);
+        context.put("userId", user.getId());
+        context.put("skills", user.getSkills());
+        context.put("college", user.getCollege());
+        
+        // Fetch user's weakest topics to potentially focus on
+        List<Topic> weakestTopics = topicRepository.findByUser(user).stream()
+                .filter(t -> t.getCompletionPercentage() < 50)
+                .limit(3)
+                .toList();
+        context.put("weakestTopics", weakestTopics.stream().map(Topic::getName).toList());
+
+        Map<String, Object> mlResponse = (Map<String, Object>) mlService.startMockInterview(context);
         
         List<Map<String, Object>> questions = (List<Map<String, Object>>) mlResponse.get("questions");
         
@@ -61,16 +74,36 @@ public class InterviewController {
 
     @PostMapping("/{id}/submit")
     public ResponseEntity<Object> submitMockInterview(@AuthenticationPrincipal User user, @PathVariable Long id, @RequestBody Map<String, Object> request) {
-        MockInterview interview = mockInterviewRepository.findById(id).orElseThrow();
+        MockInterview interview = mockInterviewRepository.findById(id).orElse(null);
+        if (interview == null) {
+            return ResponseEntity.notFound().build();
+        }
         
-        Map<String, Object> mlResponse = (Map<String, Object>) mlService.evaluateMockInterview(request);
-        
-        interview.setStatus("Completed");
-        interview.setOverallScore((Integer) mlResponse.get("overallScore"));
-        interview.setOverallFeedback((String) mlResponse.get("overallFeedback"));
-        mockInterviewRepository.save(interview);
-        
-        return ResponseEntity.ok(mlResponse);
+        try {
+            Map<String, Object> mlResponse = (Map<String, Object>) mlService.evaluateMockInterview(request);
+            
+            interview.setStatus("Completed");
+            if (mlResponse != null && mlResponse.get("overallScore") != null) {
+                Object overallScoreObj = mlResponse.get("overallScore");
+                if (overallScoreObj instanceof Integer) {
+                    interview.setOverallScore((Integer) overallScoreObj);
+                } else if (overallScoreObj instanceof Double) {
+                    interview.setOverallScore(((Double) overallScoreObj).intValue());
+                } else if (overallScoreObj instanceof String) {
+                    try {
+                        interview.setOverallScore(Integer.parseInt((String) overallScoreObj));
+                    } catch (NumberFormatException e) {
+                        interview.setOverallScore(0);
+                    }
+                }
+                interview.setOverallFeedback((String) mlResponse.get("feedback"));
+            }
+            
+            mockInterviewRepository.save(interview);
+            return ResponseEntity.ok(mlResponse != null ? mlResponse : new HashMap<>());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of("error", "Failed to evaluate interview: " + e.getMessage()));
+        }
     }
 
     @PostMapping("/manual")

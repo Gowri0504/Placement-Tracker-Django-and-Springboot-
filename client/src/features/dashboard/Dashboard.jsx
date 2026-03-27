@@ -150,9 +150,9 @@ const Dashboard = () => {
         {/* Radar Chart */}
         <Card className="lg:col-span-1 h-[400px] flex flex-col">
           <h3 className="text-xl font-bold text-white mb-6">Skill Analysis</h3>
-          <div className="flex-1 w-full min-h-0" style={{ minHeight: '300px' }}>
+          <div className="flex-1 w-full min-h-0" style={{ minHeight: '320px', width: '100%' }}>
             {skillsData && skillsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillsData}>
                   <PolarGrid stroke="#334155" />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
@@ -183,9 +183,9 @@ const Dashboard = () => {
         {/* Main Chart */}
         <Card className="lg:col-span-3 h-[400px] flex flex-col">
           <h3 className="text-xl font-bold text-white mb-6">Problem Solving Distribution</h3>
-          <div className="flex-1 w-full min-h-0" style={{ minHeight: '300px' }}>
+          <div className="flex-1 w-full min-h-0" style={{ minHeight: '320px', width: '100%' }}>
             {chartData && chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
