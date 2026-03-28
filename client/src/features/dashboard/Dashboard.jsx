@@ -1,14 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../api/axios';
+import { useAuth } from '../../context/AuthContext';
+import Card from '../../components/ui/Card';
+import { Check, Loader2 } from 'lucide-react';
+import { FiCode, FiTrendingUp, FiActivity, FiCheckCircle, FiPlus } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar 
 } from 'recharts';
-import { motion } from 'framer-motion';
-import { FiActivity, FiCheckCircle, FiCode, FiTrendingUp } from 'react-icons/fi';
-import { Loader2 } from 'lucide-react';
-import api from '../../api/axios';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import DailyProgressTracker from './DailyProgressTracker';
 import QuoteCard from '../../components/dashboard/QuoteCard';
 import InsightsCard from '../../components/dashboard/InsightsCard';
 
@@ -22,7 +21,7 @@ const StatCard = ({ title, value, icon, trend, color }) => (
       <h3 className="text-3xl font-bold text-white mt-1">{value}</h3>
       {trend && (
         <div className="flex items-center gap-1 mt-2 text-sm text-green-400">
-          <FiTrendingUp />
+          <FiTrendingUp size={14} />
           <span>{trend}</span>
         </div>
       )}
@@ -31,9 +30,21 @@ const StatCard = ({ title, value, icon, trend, color }) => (
 );
 
 const Dashboard = () => {
+  const { user } = useAuth();
+  const [progressData, setProgressData] = useState([]);
   const [stats, setStats] = useState(null);
   const [prsData, setPrsData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const sections = [
+    { id: 'aptitude', label: 'Aptitude & Verbal', key: 'aptitude' },
+    { id: 'dsa', label: 'DSA & Coding', key: 'dsa' },
+    { id: 'core', label: 'Core Subjects', key: 'core' },
+    { id: 'project', label: 'Projects & Dev', key: 'project' },
+    { id: 'test', label: 'Online Test', key: 'test' },
+    { id: 'interview', label: 'Interview', key: 'interview' },
+  ];
 
   const CustomDot = (props) => {
     const { cx, cy, value } = props;
@@ -47,23 +58,118 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!user?.id) return;
+      setLoading(true);
       try {
-        const [statsRes, prsRes] = await Promise.all([
+        const [progressRes, statsRes, prsRes] = await Promise.allSettled([
+          api.get(`/progress/user/${user.id}`),
           api.get('/analytics'),
           api.get('/rankings/my-rank')
         ]);
-        setStats(statsRes.data || {});
-        setPrsData(prsRes.data || {});
+        
+        if (progressRes.status === 'fulfilled') setProgressData(progressRes.value.data || []);
+        if (statsRes.status === 'fulfilled') setStats(statsRes.value.data || {});
+        if (prsRes.status === 'fulfilled') setPrsData(prsRes.value.data || {});
       } catch (err) {
         console.error("Failed to fetch dashboard data", err);
-        setStats({});
-        setPrsData({});
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [user?.id]);
+
+  const handleCheckboxChange = async (date, sectionKey, value) => {
+    const prevData = [...progressData];
+    const existingEntry = progressData.find(p => p.date === date) || {
+      date,
+      aptitude: false,
+      dsa: false,
+      core: false,
+      project: false,
+      test: false,
+      interview: false,
+      topics: ''
+    };
+
+    const updatedEntry = { ...existingEntry, [sectionKey]: value };
+    
+    setProgressData(prev => {
+      const index = prev.findIndex(p => p.date === date);
+      if (index > -1) {
+        const newArr = [...prev];
+        newArr[index] = updatedEntry;
+        return newArr;
+      }
+      return [updatedEntry, ...prev];
+    });
+
+    try {
+      setSaving(true);
+      const res = await api.post('/progress/save', updatedEntry);
+      setProgressData(prev => prev.map(p => p.date === date ? res.data : p));
+    } catch (err) {
+      console.error('Error saving progress:', err);
+      if (err.message === 'Network Error') {
+        console.warn('Network error, keeping change locally only');
+      } else {
+        setProgressData(prevData);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleTopicChange = (date, topics) => {
+    setProgressData(prev => {
+      const exists = prev.some(p => p.date === date);
+      if (!exists) {
+        return [{ date, aptitude: false, dsa: false, core: false, project: false, test: false, interview: false, topics }, ...prev];
+      }
+      return prev.map(p => p.date === date ? { ...p, topics } : p);
+    });
+  };
+
+  const handleTopicBlur = async (date) => {
+    const entry = progressData.find(p => p.date === date);
+    if (entry) {
+      try {
+        setSaving(true);
+        const res = await api.post('/progress/save', entry);
+        setProgressData(prev => prev.map(p => p.date === date ? res.data : p));
+      } catch (err) {
+        console.error('Error saving topic:', err);
+      } finally {
+        setSaving(false);
+      }
+    }
+  };
+
+  const calculateConsistency = (sectionKey) => {
+    if (progressData.length === 0) return 0;
+    const completed = progressData.filter(p => p[sectionKey]).length;
+    return Math.round((completed / Math.max(progressData.length, 1)) * 100);
+  };
+
+  const tableDates = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    tableDates.push(d.toISOString().split('T')[0]);
+  }
+
+  const displayData = tableDates.map(date => {
+    return progressData.find(p => p.date === date) || {
+      date,
+      aptitude: false,
+      dsa: false,
+      core: false,
+      project: false,
+      test: false,
+      interview: false,
+      topics: ''
+    };
+  });
 
   if (loading) {
     return (
@@ -78,28 +184,24 @@ const Dashboard = () => {
 
   const chartData = stats?.difficultyCounts?.length ? stats.difficultyCounts.map(d => ({ name: d._id, value: d.count })) : [];
   const skillsData = stats?.skillsData || [];
-  const recentActivity = stats?.activity || [];
-  const recommendation = stats?.recommendation || "Complete your first task to see AI recommendations.";
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-display font-bold text-white">Dashboard</h1>
-        <p className="text-slate-400 mt-2">Welcome back! Here's your preparation overview.</p>
+        <h1 className="text-3xl font-display font-bold text-white">Dashboard Overview</h1>
+        <p className="text-slate-400 mt-2">Welcome back! Track your daily preparation and performance metrics.</p>
       </div>
 
       <QuoteCard />
 
-      {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard title="Total Solved" value={stats?.totalSolved || 0} icon={<FiCode />} trend="Real-time" color="text-blue-500" />
         <StatCard title="Placement Readiness" value={prsData?.prsScore ? `${prsData.prsScore}%` : '0%'} icon={<FiTrendingUp />} trend="Target: 90%+" color="text-emerald-500" />
         <StatCard title="Global Rank" value={prsData?.globalRank ? `#${prsData.globalRank}` : 'N/A'} icon={<FiActivity />} trend="Update: Weekly" color="text-primary" />
-        <StatCard title="Course Completion" value={stats?.skillsData?.length ? `${Math.round(stats.skillsData.reduce((acc, curr) => acc + curr.A, 0) / stats.skillsData.length)}%` : '0%'} icon={<FiCheckCircle />} trend="Target: 100%" color="text-accent" />
+        <StatCard title="Consistency Streak" value={user?.streak ? `${user.streak} Days` : '0 Days'} icon={<FiCheckCircle />} trend="Keep it up!" color="text-accent" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Readiness Breakdown */}
         <Card className="lg:col-span-1">
           <h3 className="text-xl font-bold text-white mb-6">Readiness Breakdown</h3>
           <div className="space-y-6">
@@ -134,25 +236,18 @@ const Dashboard = () => {
                 </div>
               ))
             )}
-            <div className="pt-4 mt-6 border-t border-slate-800">
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Score based on: Accuracy (30%), Difficulty (25%), Consistency (20%), Time (15%), Core Coverage (10%).
-              </p>
-            </div>
           </div>
         </Card>
 
-        {/* AI Insights */}
         <div className="lg:col-span-1">
           <InsightsCard prsData={prsData} stats={stats} />
         </div>
 
-        {/* Radar Chart */}
         <Card className="lg:col-span-1 h-[400px] flex flex-col">
           <h3 className="text-xl font-bold text-white mb-6">Skill Analysis</h3>
-          <div className="flex-1 w-full min-h-0" style={{ minHeight: '320px', width: '100%' }}>
+          <div className="flex-1 w-full min-h-0">
             {skillsData && skillsData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+              <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="80%" data={skillsData}>
                   <PolarGrid stroke="#334155" />
                   <PolarAngleAxis dataKey="subject" tick={{ fill: '#94a3b8', fontSize: 10 }} />
@@ -180,12 +275,11 @@ const Dashboard = () => {
           </div>
         </Card>
 
-        {/* Main Chart */}
         <Card className="lg:col-span-3 h-[400px] flex flex-col">
           <h3 className="text-xl font-bold text-white mb-6">Problem Solving Distribution</h3>
-          <div className="flex-1 w-full min-h-0" style={{ minHeight: '320px', width: '100%' }}>
+          <div className="flex-1 w-full min-h-0">
             {chartData && chartData.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+              <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                   <XAxis dataKey="name" stroke="#94a3b8" />
@@ -199,52 +293,95 @@ const Dashboard = () => {
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full text-slate-500 text-sm italic border border-dashed border-slate-800 rounded-xl">
-                No problem solving data available yet.
+                Start solving problems to see your distribution chart.
               </div>
             )}
           </div>
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border-indigo-500/30">
-          <div className="flex justify-between items-start">
-            <div>
-              <h3 className="text-xl font-bold text-white">Recommended for You</h3>
-              <p className="text-slate-300 mt-2 text-sm">{recommendation}</p>
-            </div>
-            <Button variant="accent">Start Practice</Button>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-white">Preparation Tracker</h2>
+          <div className="flex items-center gap-4">
+            {saving && <div className="flex items-center gap-2 text-primary text-sm"><Loader2 className="w-4 h-4 animate-spin" /> Saving...</div>}
+            <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-colors text-sm border border-slate-700">
+              <FiPlus /> Add Task
+            </button>
           </div>
-        </Card>
-        
-        <Card>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-bold text-white">Recent Activity</h3>
-            <Button variant="ghost" className="text-xs">View All</Button>
-          </div>
-          <div className="space-y-4">
-            {recentActivity.length > 0 ? recentActivity.map((act, i) => (
-              <div key={i} className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-800/50 transition-colors">
-                <div className={`w-2 h-2 rounded-full ${act.type === 'problem' ? 'bg-green-500' : 'bg-blue-500'}`}></div>
-                <div className="flex-1">
-                  <p className="text-slate-200 text-sm font-medium">{act.title}</p>
-                  <p className="text-slate-500 text-xs">
-                    {new Date(act.timestamp).toLocaleDateString()} • {act.subtitle}
-                  </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+          {sections.map(section => {
+            const consistency = calculateConsistency(section.key);
+            return (
+              <Card key={section.id} className="p-4">
+                <h3 className="text-slate-400 text-[10px] font-medium uppercase tracking-wider mb-2 truncate">{section.label}</h3>
+                <div className="flex justify-between items-end mb-2">
+                  <span className="text-xl font-bold text-white">{consistency}%</span>
                 </div>
-              </div>
-            )) : (
-              <div className="text-center py-4 text-slate-500 text-sm italic">
-                No recent activity yet. Start solving to see progress!
-              </div>
-            )}
+                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${consistency}%` }}
+                    className="h-full bg-primary"
+                  />
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+
+        <Card className="overflow-hidden border-slate-800 bg-slate-900/40">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="bg-slate-900/80 border-b border-slate-800">
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Date</th>
+                  {sections.map(s => (
+                    <th key={s.id} className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest text-center">{s.label}</th>
+                  ))}
+                  <th className="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-widest">Topics Learned</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800">
+                {displayData.map((row) => (
+                  <tr key={row.date} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-6 py-4 text-sm text-slate-300 font-medium">
+                      {new Date(row.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </td>
+                    {sections.map(s => (
+                      <td key={s.id} className="px-6 py-4 text-center">
+                        <label className="relative inline-flex items-center cursor-pointer p-2">
+                          <input 
+                            type="checkbox" 
+                            checked={row[s.key] || false}
+                            onChange={(e) => handleCheckboxChange(row.date, s.key, e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-5 h-5 bg-slate-800 border-2 border-slate-700 rounded peer-checked:bg-primary peer-checked:border-primary flex items-center justify-center transition-all">
+                            {row[s.key] && <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />}
+                          </div>
+                        </label>
+                      </td>
+                    ))}
+                    <td className="px-6 py-4">
+                      <input 
+                        type="text"
+                        value={row.topics || ''}
+                        onChange={(e) => handleTopicChange(row.date, e.target.value)}
+                        onBlur={() => handleTopicBlur(row.date)}
+                        placeholder="Topics..."
+                        className="w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-primary"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </Card>
       </div>
-
-      {/* Daily Progress Tracker */}
-      <DailyProgressTracker />
     </div>
   );
 };

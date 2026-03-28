@@ -62,6 +62,7 @@ function App() {
               <Route path="/signup" element={<Signup />} />
               <Route element={<ProtectedRoute />}>
                 <Route index element={<Dashboard />} />
+                <Route path="dashboard" element={<Dashboard />} />
                 <Route path="topics" element={<TopicList />} />
                 <Route path="problems" element={<ProblemTracker />} />
                 <Route path="projects" element={<ProjectPortfolio />} />

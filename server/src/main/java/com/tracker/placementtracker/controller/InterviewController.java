@@ -2,8 +2,10 @@ package com.tracker.placementtracker.controller;
 
 import com.tracker.placementtracker.entity.Interview;
 import com.tracker.placementtracker.entity.MockInterview;
+import com.tracker.placementtracker.entity.Topic;
 import com.tracker.placementtracker.entity.User;
 import com.tracker.placementtracker.repository.MockInterviewRepository;
+import com.tracker.placementtracker.repository.TopicRepository;
 import com.tracker.placementtracker.service.InterviewService;
 import com.tracker.placementtracker.service.MLService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ public class InterviewController {
     private final InterviewService interviewService;
     private final MLService mlService;
     private final MockInterviewRepository mockInterviewRepository;
+    private final TopicRepository topicRepository;
 
     @GetMapping
     public ResponseEntity<List<MockInterview>> getInterviews(@AuthenticationPrincipal User user) {

@@ -46,8 +46,9 @@ public class User implements UserDetails {
     // Gamification
     private Long xp = 0L;
     private Integer level = 1;
+    private Integer streak = 0;
     
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> badges;
 
     @Override

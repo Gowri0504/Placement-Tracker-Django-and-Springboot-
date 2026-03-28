@@ -80,19 +80,19 @@ export default function RoundDetails({ date, roundId, roundConfig, onClose, onUp
       // Save for current session logic
       const res = await api.post('/daylog', updatedLog);
       
-      // Also save to daily_logs table for row-wise historical tracking
-      const dailyLogPromises = formData.topics.map(topic => {
-        return api.post('/logs', {
-          topic: topic.name,
-          interviewRoundName: roundConfig.label,
-          optionalTestTopic: formData.optionalTestTopic,
-          timeSpentMinutes: topic.timeSpent || 30,
-          difficulty: topic.difficulty || 'Medium',
-          logDate: date
-        });
-      });
+      // Also save to daily_logs table for row-wise historical tracking using batch endpoint
+      const dailyLogs = formData.topics.map(topic => ({
+        topic: topic.name,
+        interviewRoundName: roundConfig.label,
+        optionalTestTopic: formData.optionalTestTopic,
+        timeSpentMinutes: topic.timeSpent || 30,
+        difficulty: topic.difficulty || 'Medium',
+        logDate: date
+      }));
       
-      await Promise.all(dailyLogPromises);
+      if (dailyLogs.length > 0) {
+        await api.post('/logs/batch', dailyLogs);
+      }
 
       onUpdate(res.data);
       handleClose();

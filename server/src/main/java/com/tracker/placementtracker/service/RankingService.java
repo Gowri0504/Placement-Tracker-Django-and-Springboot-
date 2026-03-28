@@ -42,9 +42,10 @@ public class RankingService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "global_leaderboard", key = "'leaderboard:global'")
-    public List<Ranking> getLeaderboard() {
-        return rankingRepository.findAllByOrderByPrsScoreDesc();
+    public List<User> getLeaderboardUsers() {
+        return userRepository.findAll().stream()
+                .sorted(Comparator.comparing(User::getXp).reversed())
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
@@ -108,26 +109,9 @@ public class RankingService {
     }
 
     private void updateUserXP(User user, double prsScore) {
-        // Simple XP logic: PRS * 10 + bonus for high scores
-        long newXp = (long) (prsScore * 10);
-        if (prsScore > 80) newXp += 500;
-        if (prsScore > 90) newXp += 1000;
-        
-        user.setXp(newXp);
-        
-        // Level logic: Level = (XP / 1000) + 1
-        int newLevel = (int) (newXp / 1000) + 1;
-        user.setLevel(newLevel);
-        
-        // Badge logic
-        List<String> badges = user.getBadges();
-        if (badges == null) badges = new java.util.ArrayList<>();
-        
-        if (prsScore > 70 && !badges.contains("SQL Ninja")) badges.add("SQL Ninja");
-        if (prsScore > 85 && !badges.contains("Graph Master")) badges.add("Graph Master");
-        
-        user.setBadges(badges);
-        userRepository.save(user);
+        // XP is now managed by ProgressService based on completed tasks
+        // Level is also managed by ProgressService
+        // This method is kept for compatibility with other parts of the system if needed
     }
 
     private double calculateAccuracy(List<ProblemStat> stats) {
